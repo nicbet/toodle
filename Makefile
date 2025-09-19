@@ -14,7 +14,8 @@ GHCR_IO_PAT ?= unknown
 all: build
 
 build:
-	docker build -t ghcr.io/nicbet/toodle:latest .
+	$(info Building image with tag $(TAG):$(VERSION))
+	@docker build $(DOCKER_BUILD_OPTS) -t $(TAG):$(VERSION) .
 
 clean:
 	docker rmi ghcr.io/nicbet/toodle:latest || true
@@ -25,7 +26,7 @@ build_local:
 clean_local:
 	rm -rf dist/
 
-deploy: login-registry push-image logout-registry
+deploy: login-registry push-image tag-latest push-latest logout-registry
 
 # Login to Docker registry
 login-registry:
