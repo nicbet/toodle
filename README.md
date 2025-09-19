@@ -95,7 +95,13 @@ docker run -p 80:80 -p 443:443 -e APP_DOMAIN=yourdomain.com ghcr.io/nicbet/toodl
 ### Behind Load Balancer Mode
 
 ```bash
-docker run -p 80:80 -e APP_DOMAIN=yourdomain.com -e BEHIND_LOAD_BALANCER=true ghcr.io/nicbet/toodle:latest
+docker run -p 5000:5000 -e APP_DOMAIN=yourdomain.com -e BEHIND_LOAD_BALANCER=true ghcr.io/nicbet/toodle:latest
+```
+
+You can customize the port using the `PORT` environment variable:
+
+```bash
+docker run -p 8080:8080 -e APP_DOMAIN=yourdomain.com -e BEHIND_LOAD_BALANCER=true -e PORT=8080 ghcr.io/nicbet/toodle:latest
 ```
 
 ### Docker Compose Examples
@@ -126,10 +132,33 @@ services:
     environment:
       - APP_DOMAIN=yourdomain.com
       - BEHIND_LOAD_BALANCER=true
+      - PORT=5000  # Default port, can be customized
     ports:
-      - "80:80"  # Only expose port 80
+      - "5000:5000"  # Map host port to container port
     # No need for Caddy data volumes when behind load balancer
 ```
+
+**Custom Port Example:**
+```yaml
+version: '3.8'
+services:
+  toodle:
+    image: ghcr.io/nicbet/toodle:latest
+    environment:
+      - APP_DOMAIN=yourdomain.com
+      - BEHIND_LOAD_BALANCER=true
+      - PORT=8080
+    ports:
+      - "8080:8080"
+```
+
+## Environment Variables
+
+The application supports the following environment variables:
+
+- `APP_DOMAIN`: The domain name for the application (default: `localhost`)
+- `BEHIND_LOAD_BALANCER`: Set to `true` to run behind a load balancer/ingress (default: `false`)
+- `PORT`: Port to bind to when running behind a load balancer (default: `5000`)
 
 ### Automated Setup with Script
 

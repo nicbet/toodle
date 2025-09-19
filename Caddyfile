@@ -2,50 +2,36 @@
 # Supports both automatic TLS and load balancer modes
 # Set BEHIND_LOAD_BALANCER=true to run behind a load balancer/ingress
 
-# Common configuration shared by both modes
-(common) {
-    root * /usr/share/caddy
-    try_files {path} {path}/ /index.html
-    file_server
-    encode gzip brotli
+# Common configuration
+root * /usr/share/caddy
+try_files {path} {path}/ /index.html
+file_server
+encode gzip brotli
 
-    header {
-        X-Frame-Options "DENY"
-        X-Content-Type-Options "nosniff"
-        X-XSS-Protection "1; mode=block"
-        Referrer-Policy "strict-origin-when-cross-origin"
-    }
-
-    log {
-        output file /var/log/caddy/access.log
-        format json
-    }
+header {
+    X-Frame-Options "DENY"
+    X-Content-Type-Options "nosniff"
+    X-XSS-Protection "1; mode=block"
+    Referrer-Policy "strict-origin-when-cross-origin"
 }
 
-# TLS-specific headers (only when not behind load balancer)
-(tls_headers) {
-    header Strict-Transport-Security "max-age=31536000;"
+log {
+    output file /var/log/caddy/access.log
+    format json
 }
 
-# Main site configuration
+# Site configuration - conditional based on environment
 {$APP_DOMAIN} {
-    import common
-
-    # Conditionally add TLS headers if not behind load balancer
-    {if {$BEHIND_LOAD_BALANCER} != "true"}
-        import tls_headers
-    {/if}
-
-    # TLS configuration (only if not behind load balancer)
+    # TLS configuration (only when not behind load balancer)
     {if {$BEHIND_LOAD_BALANCER} != "true"}
         tls {$APP_DOMAIN}
+        header Strict-Transport-Security "max-age=31536000;"
+        bind :80
     {/if}
 
-    # Bind to port 5000 if behind load balancer, otherwise let Caddy handle both 80 and 443
+    # Load balancer configuration (only when behind load balancer)
     {if {$BEHIND_LOAD_BALANCER} == "true"}
-        bind :5000
-    {else}
-        bind :80
+        bind :{$PORT:5000}
     {/if}
 }
 
@@ -55,3 +41,5 @@ http://{$APP_DOMAIN} {
     redir https://{host}{uri} permanent
 }
 {/if}
+    redir https://{host}{uri} permanent
+}

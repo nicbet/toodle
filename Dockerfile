@@ -33,6 +33,7 @@ EXPOSE 80 443 5000
 # Set default environment variables
 ENV APP_DOMAIN=localhost
 ENV BEHIND_LOAD_BALANCER=false
+ENV PORT=5000
 
 # Start Caddy
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
