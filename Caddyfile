@@ -1,0 +1,34 @@
+# Caddy configuration for React SPA with automatic TLS
+{$APP_DOMAIN} {
+    # Serve static files from the build directory
+    root * /usr/share/caddy
+
+    # SPA routing - fallback to index.html for client-side routing
+    try_files {path} {path}/ /index.html
+
+    # Enable file server
+    file_server
+
+    # Compression (gzip and brotli)
+    encode gzip brotli
+
+    # Security headers
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000;"
+        # Prevent clickjacking
+        X-Frame-Options "DENY"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # XSS protection
+        X-XSS-Protection "1; mode=block"
+        # Referrer policy
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Log requests
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}

@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# Toodle Installer Script
+# This script sets up Toodle with Caddy and automatic TLS
+
+set -e
+
+echo "🚀 Toodle Installer"
+echo "=================="
+
+# Function to prompt for input with default
+prompt_with_default() {
+    local prompt="$1"
+    local default="$2"
+    local response
+
+    read -p "$prompt [$default]: " response
+    echo "${response:-$default}"
+}
+
+# Get installation path
+INSTALL_PATH=$(prompt_with_default "Enter installation path" "/opt/toodle")
+
+# Get domain
+DOMAIN=$(prompt_with_default "Enter your domain" "example.com")
+
+echo ""
+echo "Your configuration:"
+echo "   Installation path: $INSTALL_PATH"
+echo "   Domain: $DOMAIN"
+echo ""
+
+# Confirm
+read -p "Continue with this configuration? (y/N): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Installation cancelled."
+    exit 1
+fi
+
+# Create installation directory
+echo "Creating installation directory..."
+sudo mkdir -p "$INSTALL_PATH"
+sudo chown $USER:$USER "$INSTALL_PATH"
+
+# Create docker-compose.yml
+echo "Creating docker-compose.yml..."
+cat > "$INSTALL_PATH/docker-compose.yml" << EOF
+version: '3.8'
+
+services:
+  toodle:
+    image: ghcr.io/nicbet/toodle:latest
+    container_name: toodle-app
+    environment:
+      - APP_DOMAIN=$DOMAIN
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    volumes:
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+EOF
+
+# Create .env file for easy configuration changes
+echo "Creating configuration file..."
+cat > "$INSTALL_PATH/.env" << EOF
+# Toodle Configuration
+APP_DOMAIN=$DOMAIN
+EOF
+
+echo ""
+echo "✅ Installation complete!"
+echo ""
+echo "Installed to: $INSTALL_PATH"
+echo "Domain: $DOMAIN"
+echo ""
+echo "🚀 To start Toodle:"
+echo "   cd $INSTALL_PATH"
+echo "   docker-compose up -d"
+echo ""
+echo "To update configuration:"
+echo "   Edit $INSTALL_PATH/.env and restart with:"
+echo "   docker-compose down && docker-compose up -d"
+echo ""
+echo "To view logs:"
+echo "   docker-compose logs -f toodle"
+echo ""
+echo "To stop:"
+echo "   docker-compose down"
