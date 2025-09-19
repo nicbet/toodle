@@ -1,0 +1,29 @@
+# Example Caddyfile for TLS termination with reverse proxy to Bun-served app
+# Place this in /etc/caddy/Caddyfile or use with docker-compose
+
+yourdomain.com {
+    # TLS: Caddy will automatically manage certificates
+    tls
+
+    # Reverse proxy to the Bun server running on port 3000
+    reverse_proxy localhost:3000
+
+    # Security headers
+    header {
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Log requests
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}
+
+# Redirect HTTP to HTTPS
+http://yourdomain.com {
+    redir https://{host}{uri} permanent
+}

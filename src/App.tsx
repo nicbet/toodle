@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Modal from './components/Modal.js';
 import TodoList from './components/TodoList.js';
 
 declare global {
@@ -166,8 +165,17 @@ const App: React.FC = () => {
         fontWeight: 'bold',
         color: 'rgba(255,255,255,0.9)',
         zIndex: 10,
-        margin: 0
-      }}>Toodle</h1>
+        margin: 0,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+      }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <polyline points="9,12 12,15 15,9"></polyline>
+        </svg>
+        Toodle
+      </h1>
 
       {/* Fixed background that doesn't move */}
       <div style={{

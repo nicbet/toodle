@@ -18,22 +18,24 @@ COPY . .
 # Build the app
 RUN bun run build
 
-# Stage 2: Serve with Caddy
-FROM caddy:alpine
+# Stage 2: Serve with Bun
+FROM oven/bun:latest
 
-# Copy built files to Caddy
-COPY --from=builder /app/dist /usr/share/caddy
+ENV NODE_ENV=production
 
-# Copy Caddy configuration
-COPY Caddyfile /etc/caddy/Caddyfile
+# Copy built files
+COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/package.json /app/package.json
+# Set working directory
+WORKDIR /app
 
-# Expose ports 80, 443, 5000 (Caddy will use both or just 5000 based on configuration)
-EXPOSE 80 443 5000
+RUN bun install --frozen-lockfile
+
+# Expose the port from environment
+EXPOSE $PORT
 
 # Set default environment variables
-ENV APP_DOMAIN=localhost
-ENV BEHIND_LOAD_BALANCER=false
-ENV PORT=5000
+ENV PORT=3000
 
-# Start Caddy
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+# Start Bun server
+CMD ["bun", "run", "serve"]
