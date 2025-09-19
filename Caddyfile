@@ -41,5 +41,3 @@ http://{$APP_DOMAIN} {
     redir https://{host}{uri} permanent
 }
 {/if}
-    redir https://{host}{uri} permanent
-}
