@@ -1,6 +1,8 @@
 # Toodle
 
-A modern, responsive todo list application built with React, TypeScript, Vite, and Tailwind CSS. The app is containerized with Docker and served using Caddy for production-ready deployment.
+A modern, responsive todo list application built with React, TypeScript, Vite, and Tailwind CSS. All todo items are stored in the browser's local storage. The app is containerized with Docker and served using Caddy for production-ready deployment.
+
+![Toodle Demo](./assets/demo.png)
 
 ## Features
 
@@ -11,6 +13,7 @@ A modern, responsive todo list application built with React, TypeScript, Vite, a
 - 🐳 Docker containerization
 - 🔒 HTTPS with automatic SSL certificates via Caddy
 - ⚡ Built with Bun for speed
+- 🧪 Entirely vibe-coded with [Opencode](https://opencode.ai/)
 
 ## Installation
 
