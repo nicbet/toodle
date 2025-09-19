@@ -19,23 +19,6 @@ COPY . .
 RUN bun run build
 
 # Stage 2: Serve with Bun
-FROM oven/bun:latest
-
-ENV NODE_ENV=production
-
-# Copy built files
-COPY --from=builder /app/dist /app/dist
-COPY --from=builder /app/package.json /app/package.json
-# Set working directory
-WORKDIR /app
-
-RUN bun install --frozen-lockfile
-
-# Expose the port from environment
-EXPOSE $PORT
-
-# Set default environment variables
-ENV PORT=3000
-
-# Start Bun server
-CMD ["bun", "run", "serve"]
+# --- Serve stage ---
+FROM caddy:2-alpine
+COPY --from=builder /app/dist /usr/share/caddy

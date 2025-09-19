@@ -78,18 +78,12 @@ This will:
 
 ## Deployment
 
-The Docker image serves the app using Bun's built-in static file server. The app listens on the port specified by the `PORT` environment variable (default: 3000).
+The Docker image serves the app using Bun's built-in static file server. The app listens on the :80 that you can map to any port you like.
 
 ### Docker Run Example
 
 ```bash
-docker run -p 3000:3000 ghcr.io/nicbet/toodle:latest
-```
-
-You can customize the port:
-
-```bash
-docker run -p 8080:8080 -e PORT=8080 ghcr.io/nicbet/toodle:latest
+docker run -p 3000:80 ghcr.io/nicbet/toodle:latest
 ```
 
 ### Docker Compose Example
@@ -99,44 +93,9 @@ version: '3.8'
 services:
   toodle:
     image: ghcr.io/nicbet/toodle:latest
-    environment:
-      - PORT=3000
     ports:
-      - "3000:3000"
+      - "3000:80"
 ```
-
-## Optional: TLS Termination with Caddy
-
-If you want to add TLS termination, HTTPS certificates, and additional security features, you can deploy behind Caddy. Example configurations are provided in the `examples/` directory.
-
-### Quick Start with Caddy
-
-1. Copy the example files:
-   ```bash
-   cp examples/Caddyfile .
-   cp examples/docker-compose.yml .
-   ```
-
-2. Edit `Caddyfile` to replace `yourdomain.com` with your actual domain.
-
-3. Run with Docker Compose:
-   ```bash
-   docker-compose up -d
-   ```
-
-This setup provides:
-- Automatic HTTPS certificates from Let's Encrypt
-- HTTP to HTTPS redirection
-- Security headers
-- Request logging
-- Reverse proxy to the Bun-served app
-
-## Environment Variables
-
-The application supports the following environment variables:
-
-- `PORT`: Port to bind the server to (default: `3000`)
-
 ## Contributing
 
 We welcome contributions! Please follow these steps:
