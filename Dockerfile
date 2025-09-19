@@ -27,8 +27,12 @@ COPY --from=builder /app/dist /usr/share/caddy
 # Copy Caddy configuration
 COPY Caddyfile /etc/caddy/Caddyfile
 
-# Expose ports 80 and 443
-EXPOSE 80 443
+# Expose ports 80, 443, 5000 (Caddy will use both or just 5000 based on configuration)
+EXPOSE 80 443 5000
+
+# Set default environment variables
+ENV APP_DOMAIN=localhost
+ENV BEHIND_LOAD_BALANCER=false
 
 # Start Caddy
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

@@ -73,20 +73,63 @@ This will:
 
 ## Deployment
 
-The Docker image is configured to serve the app with Caddy, which automatically handles:
+The Docker image is configured to serve the app with Caddy, which supports two deployment modes:
+
+### Mode 1: Automatic TLS (Default)
+Caddy automatically handles:
 - HTTPS certificates from Let's Encrypt
 - HTTP to HTTPS redirection
 - Static file serving with SPA routing
 
-### Manual Docker Run
+### Mode 2: Behind Load Balancer/Ingress
+For deployments behind a load balancer, reverse proxy, or ingress controller that handles TLS termination.
 
-To run the container manually:
+## Deployment Examples
+
+### Automatic TLS Mode (Default)
 
 ```bash
 docker run -p 80:80 -p 443:443 -e APP_DOMAIN=yourdomain.com ghcr.io/nicbet/toodle:latest
 ```
 
-Replace `yourdomain.com` with your actual domain.
+### Behind Load Balancer Mode
+
+```bash
+docker run -p 80:80 -e APP_DOMAIN=yourdomain.com -e BEHIND_LOAD_BALANCER=true ghcr.io/nicbet/toodle:latest
+```
+
+### Docker Compose Examples
+
+**Automatic TLS:**
+```yaml
+version: '3.8'
+services:
+  toodle:
+    image: ghcr.io/nicbet/toodle:latest
+    environment:
+      - APP_DOMAIN=yourdomain.com
+      - BEHIND_LOAD_BALANCER=false  # or omit (default)
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+```
+
+**Behind Load Balancer:**
+```yaml
+version: '3.8'
+services:
+  toodle:
+    image: ghcr.io/nicbet/toodle:latest
+    environment:
+      - APP_DOMAIN=yourdomain.com
+      - BEHIND_LOAD_BALANCER=true
+    ports:
+      - "80:80"  # Only expose port 80
+    # No need for Caddy data volumes when behind load balancer
+```
 
 ### Automated Setup with Script
 
@@ -99,40 +142,9 @@ chmod +x setup
 
 This interactive script will:
 1. Prompt for installation path and domain
-2. Create a `docker-compose.yml` file with proper configuration
-3. Set up environment files and volumes for Caddy data persistence
-
-### Using Docker Compose
-
-After setup, or with a manual `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-services:
-  toodle:
-    image: ghcr.io/nicbet/toodle:latest
-    container_name: toodle-app
-    environment:
-      - APP_DOMAIN=yourdomain.com
-    ports:
-      - "80:80"
-      - "443:443"
-    restart: always
-    volumes:
-      - ./caddy_data:/data
-      - ./caddy_config:/config
-```
-
-Start the service:
-
-```bash
-docker-compose up -d
-```
-
-**Management Commands:**
-- View logs: `docker-compose logs -f toodle`
-- Stop: `docker-compose down`
-- Update configuration: Edit `.env` file and restart with `docker-compose down && docker-compose up -d`
+2. Ask if you're deploying behind a load balancer
+3. Create a `docker-compose.yml` file with proper configuration
+4. Set up environment files and volumes for Caddy data persistence (when using TLS mode)
 
 ## Contributing
 

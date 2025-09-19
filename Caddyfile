@@ -1,34 +1,57 @@
-# Caddy configuration for React SPA with automatic TLS
-{$APP_DOMAIN} {
-    # Serve static files from the build directory
+# Caddy configuration for React SPA
+# Supports both automatic TLS and load balancer modes
+# Set BEHIND_LOAD_BALANCER=true to run behind a load balancer/ingress
+
+# Common configuration shared by both modes
+(common) {
     root * /usr/share/caddy
-
-    # SPA routing - fallback to index.html for client-side routing
     try_files {path} {path}/ /index.html
-
-    # Enable file server
     file_server
-
-    # Compression (gzip and brotli)
     encode gzip brotli
 
-    # Security headers
     header {
-        # Enable HSTS
-        Strict-Transport-Security "max-age=31536000;"
-        # Prevent clickjacking
         X-Frame-Options "DENY"
-        # Prevent MIME type sniffing
         X-Content-Type-Options "nosniff"
-        # XSS protection
         X-XSS-Protection "1; mode=block"
-        # Referrer policy
         Referrer-Policy "strict-origin-when-cross-origin"
     }
 
-    # Log requests
     log {
         output file /var/log/caddy/access.log
         format json
     }
 }
+
+# TLS-specific headers (only when not behind load balancer)
+(tls_headers) {
+    header Strict-Transport-Security "max-age=31536000;"
+}
+
+# Main site configuration
+{$APP_DOMAIN} {
+    import common
+
+    # Conditionally add TLS headers if not behind load balancer
+    {if {$BEHIND_LOAD_BALANCER} != "true"}
+        import tls_headers
+    {/if}
+
+    # TLS configuration (only if not behind load balancer)
+    {if {$BEHIND_LOAD_BALANCER} != "true"}
+        tls {$APP_DOMAIN}
+    {/if}
+
+    # Bind to port 5000 if behind load balancer, otherwise let Caddy handle both 80 and 443
+    {if {$BEHIND_LOAD_BALANCER} == "true"}
+        bind :5000
+    {else}
+        bind :80
+    {/if}
+}
+
+# HTTP to HTTPS redirect (only if not behind load balancer)
+{if {$BEHIND_LOAD_BALANCER} != "true"}
+http://{$APP_DOMAIN} {
+    redir https://{host}{uri} permanent
+}
+{/if}
