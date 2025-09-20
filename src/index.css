@@ -6,3 +6,20 @@
 * {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
+
+/* Override dnd-kit focus styles - only target outline, preserve box-shadow for selection */
+.todo-item:focus,
+.todo-item:focus-visible {
+  outline: none !important;
+}
+
+/* Target dnd-kit specific overlay and dragging states - only remove outline */
+[data-dnd-kit-overlay] .todo-item,
+.todo-item[data-dnd-kit-dragging="true"] {
+  outline: none !important;
+}
+
+/* Prevent dnd-kit from adding unwanted borders after drag */
+.todo-item[aria-pressed="true"] {
+  outline: none !important;
+}

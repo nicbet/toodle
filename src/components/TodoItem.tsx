@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const TodoItem: React.FC<{
   id: number;
@@ -13,6 +15,20 @@ const TodoItem: React.FC<{
   updateTodo: (id: number, text: string) => void;
   deleteTodo: (id: number) => void;
 }> = ({ text, completed, toggleTodo, id, index, isSelected, setSelectedIndex, isEditing, setEditingIndex, updateTodo, deleteTodo }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
   const [editText, setEditText] = useState(text);
   const [isHovered, setIsHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -47,9 +63,30 @@ const TodoItem: React.FC<{
     }
   };
 
+  const baseStyle = {
+    padding: '16px',
+    width: '500px',
+    backgroundColor: isEditing ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.2)',
+    backdropFilter: 'blur(4px)',
+    borderRadius: '8px',
+    boxShadow: isEditing ? '0 4px 12px rgba(255,107,53,0.5)' : isSelected ? '0 0 15px rgba(0,102,255,0.6), 0 4px 12px rgba(59,130,246,0.3)' : '0 4px 6px rgba(0,0,0,0.1)',
+    border: `2px solid ${isEditing ? '#ff6b35' : 'transparent'}`,
+    display: 'flex',
+    alignItems: 'center',
+    transition: 'all 0.3s ease',
+    // keep text decoration on the text node only so child elements (like the checkmark)
+    // don't get visually struck through by inherited text-decoration rendering
+    color: completed ? '#999999' : '#ffffff',
+    opacity: completed ? 0.7 : 1,
+    cursor: isEditing ? 'default' : 'pointer',
+    // Override dnd-kit focus styles
+    outline: 'none',
+    WebkitTapHighlightColor: 'transparent'
+  };
+
   return (
     <li
-      ref={liRef}
+      ref={setNodeRef}
       onClick={() => {
         if (!isEditing) {
           setSelectedIndex(index);
@@ -58,26 +95,20 @@ const TodoItem: React.FC<{
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        padding: '16px',
-        width: '500px',
-        backgroundColor: isEditing ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.2)',
-        backdropFilter: 'blur(4px)',
-        borderRadius: '8px',
-        boxShadow: isEditing ? '0 4px 12px rgba(255,107,53,0.5)' : isSelected ? '0 0 15px rgba(0,102,255,0.6), 0 4px 12px rgba(59,130,246,0.3)' : '0 4px 6px rgba(0,0,0,0.1)',
-        border: `2px solid ${isEditing ? '#ff6b35' : 'transparent'}`,
-        display: 'flex',
-        alignItems: 'center',
-        transition: 'all 0.3s ease',
-        // keep text decoration on the text node only so child elements (like the checkmark)
-        // don't get visually struck through by inherited text-decoration rendering
-        color: completed ? '#999999' : '#ffffff',
-        opacity: completed ? 0.7 : 1,
-        cursor: isEditing ? 'default' : 'pointer'
-      }}>
+        ...baseStyle,
+        ...style,
+        cursor: isEditing ? 'default' : 'grab'
+      }}
+      className="todo-item"
+      {...attributes}
+      {...listeners}>
       <input
         type="checkbox"
         checked={completed}
-        onChange={() => toggleTodo(id)}
+        onChange={(e) => {
+          e.stopPropagation();
+          toggleTodo(id);
+        }}
         style={{
           display: 'none'
         }}
@@ -114,6 +145,7 @@ const TodoItem: React.FC<{
           onChange={(e) => setEditText(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={() => { if (editText.trim() === '') deleteTodo(id); setEditingIndex(null); }}
+          onMouseDown={(e) => e.stopPropagation()}
           style={{
             flex: 1,
             border: 'none',
@@ -132,6 +164,7 @@ const TodoItem: React.FC<{
               e.stopPropagation();
               deleteTodo(id);
             }}
+            onMouseDown={(e) => e.stopPropagation()}
             style={{
               marginLeft: '12px',
               padding: '6px',

@@ -11,6 +11,7 @@ interface Todo {
   id: number;
   text: string;
   completed: boolean;
+  order: number;
 }
 
 const App: React.FC = () => {
@@ -19,7 +20,7 @@ const App: React.FC = () => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const addTodo = (text: string) => {
-    const newTodos = [...todos, { id: Date.now(), text, completed: false }];
+    const newTodos = [...todos, { id: Date.now(), text, completed: false, order: todos.length }];
     setTodos(newTodos);
     setSelectedIndex(newTodos.length - 1);
     setEditingIndex(newTodos.length - 1);
@@ -38,6 +39,34 @@ const App: React.FC = () => {
 
   const updateTodo = (id: number, text: string) => {
     setTodos(todos.map(todo => todo.id === id ? { ...todo, text } : todo));
+  };
+
+  const reorderTodos = (fromIndex: number, toIndex: number) => {
+    if (fromIndex < 0 || fromIndex >= todos.length || toIndex < 0 || toIndex >= todos.length) {
+      return;
+    }
+
+    const newTodos = [...todos];
+    const movedTodo = newTodos[fromIndex]!;
+    newTodos.splice(fromIndex, 1);
+    newTodos.splice(toIndex, 0, movedTodo);
+
+    // Update order values to maintain consistency
+    const reorderedTodos = newTodos.map((todo, index) => ({
+      ...todo,
+      order: index
+    }));
+
+    setTodos(reorderedTodos);
+
+    // Update selectedIndex if it was affected by the move
+    if (selectedIndex === fromIndex) {
+      setSelectedIndex(toIndex);
+    } else if (selectedIndex > fromIndex && selectedIndex <= toIndex) {
+      setSelectedIndex(selectedIndex - 1);
+    } else if (selectedIndex < fromIndex && selectedIndex >= toIndex) {
+      setSelectedIndex(selectedIndex + 1);
+    }
   };
 
   const openCount = todos.filter(t => !t.completed).length;
@@ -207,6 +236,7 @@ const App: React.FC = () => {
           setEditingIndex={setEditingIndex}
           updateTodo={updateTodo}
           deleteTodo={deleteTodo}
+          reorderTodos={reorderTodos}
         />
       </div>
       <div style={{
