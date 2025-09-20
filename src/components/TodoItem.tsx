@@ -54,7 +54,7 @@ const TodoItem: React.FC<{
       } else {
         setEditingIndex(null);
       }
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === '/') {
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       // Allow global handler to process after saving
       updateTodo(id, editText);
       setEditingIndex(null);

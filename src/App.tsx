@@ -116,10 +116,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '/') {
+      // Don't trigger shortcuts if the event target is an input field
+      const target = e.target as HTMLElement;
+      const isInputField = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
+
+      if (e.key === '/' && !isInputField) {
         e.preventDefault();
         addTodo('');
-      } else if (e.key === '?') {
+      } else if (e.key === '?' && !isInputField) {
         e.preventDefault();
         setShowShortcutsModal(true);
       } else if (todos.length > 0) {
