@@ -14,7 +14,9 @@ const TodoItem: React.FC<{
   setEditingIndex: (index: number | null) => void;
   updateTodo: (id: number, text: string) => void;
   deleteTodo: (id: number) => void;
-}> = ({ text, completed, toggleTodo, id, index, isSelected, setSelectedIndex, isEditing, setEditingIndex, updateTodo, deleteTodo }) => {
+  addTodo: (text: string) => void;
+  saveCurrentAndAddNew: (currentId: number, currentText: string) => void;
+}> = ({ text, completed, toggleTodo, id, index, isSelected, setSelectedIndex, isEditing, setEditingIndex, updateTodo, deleteTodo, addTodo, saveCurrentAndAddNew }) => {
   const {
     attributes,
     listeners,
@@ -43,7 +45,10 @@ const TodoItem: React.FC<{
   }, [text, isEditing]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.stopPropagation();
+      saveCurrentAndAddNew(id, editText);
+    } else if (e.key === 'Enter') {
       e.stopPropagation();
       if (editText.trim() === '') {
         deleteTodo(id);

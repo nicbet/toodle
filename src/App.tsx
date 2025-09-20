@@ -28,6 +28,17 @@ const App: React.FC = () => {
     setEditingIndex(newTodos.length - 1);
   };
 
+  const saveCurrentAndAddNew = (currentId: number, currentText: string) => {
+    setTodos(prevTodos => {
+      const updated = prevTodos.map(todo => todo.id === currentId ? { ...todo, text: currentText } : todo);
+      const newTodo = { id: Date.now(), text: '', completed: false, order: updated.length };
+      const newTodos = [...updated, newTodo];
+      setSelectedIndex(newTodos.length - 1);
+      setEditingIndex(newTodos.length - 1);
+      return newTodos;
+    });
+  };
+
   const toggleTodo = (id: number) => {
     setTodos(todos.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
   };
@@ -258,6 +269,8 @@ const App: React.FC = () => {
           updateTodo={updateTodo}
           deleteTodo={deleteTodo}
           reorderTodos={reorderTodos}
+          addTodo={addTodo}
+          saveCurrentAndAddNew={saveCurrentAndAddNew}
         />
       </div>
 
