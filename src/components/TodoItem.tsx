@@ -45,8 +45,12 @@ const TodoItem: React.FC<{
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.stopPropagation();
-      updateTodo(id, editText);
-      setEditingIndex(null);
+      if (editText.trim() === '') {
+        deleteTodo(id);
+      } else {
+        updateTodo(id, editText);
+        setEditingIndex(null);
+      }
     } else if (e.key === 'Escape') {
       e.stopPropagation();
       if (editText.trim() === '') {
@@ -56,8 +60,12 @@ const TodoItem: React.FC<{
       }
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       // Allow global handler to process after saving
-      updateTodo(id, editText);
-      setEditingIndex(null);
+      if (editText.trim() === '') {
+        deleteTodo(id);
+      } else {
+        updateTodo(id, editText);
+        setEditingIndex(null);
+      }
     } else {
       e.stopPropagation();
     }
