@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TodoList from './components/TodoList.js';
+import { KeyboardShortcutsModal } from './components/Modal.js';
 
 declare global {
   interface Window {
@@ -18,6 +19,7 @@ const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
   const addTodo = (text: string) => {
     const newTodos = [...todos, { id: Date.now(), text, completed: false, order: todos.length }];
@@ -70,7 +72,6 @@ const App: React.FC = () => {
   };
 
   const openCount = todos.filter(t => !t.completed).length;
-  const completedCount = todos.filter(t => t.completed).length;
 
   useEffect(() => {
     const saved = localStorage.getItem('todos');
@@ -118,6 +119,9 @@ const App: React.FC = () => {
       if (e.key === '/') {
         e.preventDefault();
         addTodo('');
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setShowShortcutsModal(true);
       } else if (todos.length > 0) {
         // Check Shift+Arrow combinations first (more specific)
         if (e.shiftKey && e.key === 'ArrowUp') {
@@ -158,7 +162,7 @@ const App: React.FC = () => {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIndex, todos, toggleTodo, deleteTodo, editingIndex, addTodo, reorderTodos]);
+  }, [selectedIndex, todos, toggleTodo, deleteTodo, editingIndex, addTodo, reorderTodos, setShowShortcutsModal]);
 
   const clearAll = () => {
     if (window.confirm('Are you sure you want to clear all todos?')) {
@@ -252,26 +256,7 @@ const App: React.FC = () => {
           reorderTodos={reorderTodos}
         />
       </div>
-      <div style={{
-        position: 'fixed',
-        bottom: '80px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '500px',
-        height: '12px',
-        backgroundColor: 'rgba(156,163,175,0.5)',
-        borderRadius: '4px',
-        overflow: 'hidden',
-        backdropFilter: 'blur(4px)',
-        zIndex: 10
-      }}>
-        <div style={{
-          width: `${todos.length > 0 ? (completedCount / todos.length) * 100 : 0}%`,
-          height: '100%',
-          backgroundColor: 'rgba(34,197,94,0.8)',
-          transition: 'width 0.3s ease'
-        }}></div>
-      </div>
+
       <div style={{
         position: 'fixed',
         bottom: '20px',
@@ -283,9 +268,20 @@ const App: React.FC = () => {
         textAlign: 'center',
         lineHeight: '1.4'
       }}>
-        <div>Press "/" to add • Arrow keys to navigate • "E" to edit</div>
-        <div>'Space' to toggle • 'Backspace' or 'Delete' to remove</div>
-        <div>Shift+↑/↓ to reorder • Drag to reorder</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <kbd style={{
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            backdropFilter: 'blur(4px)',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            fontSize: '0.625rem',
+            fontFamily: 'monospace',
+            border: '1px solid rgba(255,255,255,0.2)',
+            color: 'rgba(255,255,255,0.8)',
+            fontWeight: '500'
+          }}>?</kbd>
+          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '400' }}>Keyboard shortcuts</span>
+        </div>
       </div>
       {todos.length === 0 && (
         <div style={{
@@ -294,14 +290,30 @@ const App: React.FC = () => {
           left: '50%',
           transform: 'translate(-50%, -50%)',
           textAlign: 'center',
-          color: 'rgba(255,255,255,0.8)',
-          fontSize: '1.25rem',
+          color: 'rgba(255,255,255,0.9)',
+          fontSize: '1.5rem',
           fontWeight: '500',
           zIndex: 5
         }}>
-          Press "/" to add your first todo
+          Press <kbd style={{
+            backgroundColor: 'rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(6px)',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            fontSize: '1rem',
+            fontFamily: 'monospace',
+            border: '1px solid rgba(255,255,255,0.3)',
+            color: 'rgba(255,255,255,0.9)',
+            fontWeight: '600',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>/</kbd> to add your first todo
         </div>
       )}
+
+      <KeyboardShortcutsModal
+        isOpen={showShortcutsModal}
+        onClose={() => setShowShortcutsModal(false)}
+      />
 
     </>
   );
