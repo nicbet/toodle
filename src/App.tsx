@@ -169,41 +169,41 @@ const App: React.FC = () => {
         e.preventDefault();
         setShowShortcutsModal(true);
       } else if (todos.length > 0) {
-         // Check Shift+Arrow combinations first (more specific)
-         if (e.shiftKey && e.key === 'ArrowUp') {
-           e.preventDefault();
-           if (!selectedTag && selectedIndex > 0) {
-             reorderTodos(selectedIndex, selectedIndex - 1);
-             setSelectedIndex(selectedIndex - 1);
-           }
-         } else if (e.shiftKey && e.key === 'ArrowDown') {
-           e.preventDefault();
-           if (!selectedTag && selectedIndex < todos.length - 1) {
-             reorderTodos(selectedIndex, selectedIndex + 1);
-             setSelectedIndex(selectedIndex + 1);
-           }
-         } else if (e.key === 'ArrowUp') {
-           e.preventDefault();
-           setSelectedIndex(prev => Math.max(0, prev - 1));
-         } else if (e.key === 'ArrowDown') {
-           e.preventDefault();
-           setSelectedIndex(prev => Math.min(filteredTodos.length - 1, prev + 1));
-         } else if (e.key === ' ') {
-           e.preventDefault();
-           if (filteredTodos[selectedIndex]) {
-             toggleTodo(filteredTodos[selectedIndex].id);
-           }
-         } else if (e.key === 'Backspace' || e.key === 'Delete') {
-           e.preventDefault();
-           if (filteredTodos[selectedIndex]) {
-             deleteTodo(filteredTodos[selectedIndex].id);
-           }
-         } else if (e.key === 'e') {
-           e.preventDefault();
-           if (filteredTodos[selectedIndex] && editingIndex === null) {
-             setEditingIndex(selectedIndex);
-           }
-         }
+        // Check Shift+Arrow combinations first (more specific)
+        if (e.shiftKey && e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (!selectedTag && selectedIndex > 0) {
+            reorderTodos(selectedIndex, selectedIndex - 1);
+            setSelectedIndex(selectedIndex - 1);
+          }
+        } else if (e.shiftKey && e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (!selectedTag && selectedIndex < todos.length - 1) {
+            reorderTodos(selectedIndex, selectedIndex + 1);
+            setSelectedIndex(selectedIndex + 1);
+          }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setSelectedIndex(prev => Math.max(0, prev - 1));
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setSelectedIndex(prev => Math.min(filteredTodos.length - 1, prev + 1));
+        } else if (e.key === ' ') {
+          e.preventDefault();
+          if (filteredTodos[selectedIndex]) {
+            toggleTodo(filteredTodos[selectedIndex].id);
+          }
+        } else if (e.key === 'Backspace' || e.key === 'Delete') {
+          e.preventDefault();
+          if (filteredTodos[selectedIndex]) {
+            deleteTodo(filteredTodos[selectedIndex].id);
+          }
+        } else if (e.key === 'e') {
+          e.preventDefault();
+          if (filteredTodos[selectedIndex] && editingIndex === null) {
+            setEditingIndex(selectedIndex);
+          }
+        }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -271,7 +271,7 @@ const App: React.FC = () => {
       {allTags.length > 0 && (
         <div style={{
           position: 'fixed',
-          top: '100px',
+          top: '80px',
           left: '50%',
           transform: 'translateX(-50%)',
           display: 'flex',
@@ -318,15 +318,17 @@ const App: React.FC = () => {
       }}></div>
       <div style={{
         position: 'fixed',
-        top: '60%',
+        top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         zIndex: 1,
-        maxHeight: 'calc(100vh - 200px)',
+        maxHeight: 'calc(100vh - 160px)',
         overflowY: 'auto',
         overflowX: 'hidden',
-        padding: '0 16px'
-      }}>
+        padding: '0 16px',
+        marginTop: '20px'
+      }}
+      >
         <TodoList
           todos={filteredTodos}
           toggleTodo={toggleTodo}
