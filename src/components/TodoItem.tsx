@@ -36,6 +36,13 @@ const TodoItem: React.FC<{
   const inputRef = useRef<HTMLInputElement>(null);
   const liRef = useRef<HTMLLIElement>(null);
 
+  const tags = text.match(/#\w+/g) || [];
+  const colorForTag = (tag: string) => {
+    const hash = tag.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    const hue = hash % 360;
+    return `hsl(${hue}, 40%, 70%)`;
+  };
+
   useEffect(() => {
     setEditText(text);
     if (isEditing) {
@@ -169,49 +176,28 @@ const TodoItem: React.FC<{
           }}
           autoFocus
         />
-      ) : (
-        <>
-          <span style={{ flex: 1, textDecoration: completed ? 'line-through' : 'none' }}>{text}</span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              deleteTodo(id);
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            style={{
-              marginLeft: '12px',
-              padding: '6px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: (isSelected || isHovered) ? 0.9 : 0,
-              visibility: (isSelected || isHovered) ? 'visible' : 'hidden',
-              transition: 'opacity 0.15s ease, visibility 0.15s ease',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = (isSelected || isHovered) ? '0.9' : '0'}
-            title="Delete todo"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="3,6 5,6 21,6"></polyline>
-              <path d="m19,6v14a2,2 0 0 1-2,2H7a2,2 0 0 1-2-2V6m3,0V4a2,2 0 0 1 2-2h4a2,2 0 0 1 2,2v2"></path>
-              <line x1="10" y1="11" x2="10" y2="17"></line>
-              <line x1="14" y1="11" x2="14" y2="17"></line>
-            </svg>
-          </button>
+       ) : (
+         <>
+           <span style={{ flex: 1, textDecoration: completed ? 'line-through' : 'none' }}>{text}</span>
+           {tags.length > 0 && (
+             <div style={{ display: 'flex', gap: '4px', marginLeft: '12px', marginRight: '4px' }}>
+               {tags.map(tag => (
+                 <span
+                   key={tag}
+                   style={{
+                     backgroundColor: colorForTag(tag),
+                     color: '#333',
+                     padding: '2px 6px',
+                     borderRadius: '4px',
+                     fontSize: '12px',
+                     fontWeight: 'bold'
+                   }}
+                 >
+                   {tag}
+                 </span>
+               ))}
+             </div>
+           )}
         </>
       )}
     </li>

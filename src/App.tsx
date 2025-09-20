@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import TodoList from './components/TodoList.js';
 import { KeyboardShortcutsModal } from './components/Modal.js';
 
@@ -20,6 +20,26 @@ const App: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  const colorForTag = (tag: string) => {
+    const hash = tag.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    const hue = hash % 360;
+    return `hsl(${hue}, 40%, 70%)`;
+  };
+
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    todos.forEach(todo => {
+      (todo.text.match(/#\w+/g) || []).forEach(tag => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [todos]);
+
+  const filteredTodos = useMemo(() => {
+    if (!selectedTag) return todos;
+    return todos.filter(todo => (todo.text.match(/#\w+/g) || []).some(tag => tag === selectedTag));
+  }, [todos, selectedTag]);
 
   const addTodo = (text: string) => {
     const newTodos = [...todos, { id: Date.now(), text, completed: false, order: todos.length }];
@@ -46,7 +66,12 @@ const App: React.FC = () => {
   const deleteTodo = (id: number) => {
     const newTodos = todos.filter(todo => todo.id !== id);
     setTodos(newTodos);
-    setSelectedIndex(prev => Math.min(prev, newTodos.length - 1));
+    if (selectedTag) {
+      const newFiltered = newTodos.filter(todo => (todo.text.match(/#\w+/g) || []).some(tag => tag === selectedTag));
+      setSelectedIndex(prev => Math.min(prev, newFiltered.length - 1));
+    } else {
+      setSelectedIndex(prev => Math.min(prev, newTodos.length - 1));
+    }
     setEditingIndex(null);
   };
 
@@ -96,6 +121,12 @@ const App: React.FC = () => {
   }, [todos]);
 
   useEffect(() => {
+    if (selectedTag) {
+      setSelectedIndex(prev => Math.min(prev, filteredTodos.length - 1));
+    }
+  }, [filteredTodos.length, selectedTag]);
+
+  useEffect(() => {
     if (todos.length > 0 && todos.every(todo => todo.completed) && window.confetti) {
       // Confetti from all corners
       window.confetti({
@@ -138,46 +169,46 @@ const App: React.FC = () => {
         e.preventDefault();
         setShowShortcutsModal(true);
       } else if (todos.length > 0) {
-        // Check Shift+Arrow combinations first (more specific)
-        if (e.shiftKey && e.key === 'ArrowUp') {
-          e.preventDefault();
-          if (selectedIndex > 0) {
-            reorderTodos(selectedIndex, selectedIndex - 1);
-            setSelectedIndex(selectedIndex - 1);
-          }
-        } else if (e.shiftKey && e.key === 'ArrowDown') {
-          e.preventDefault();
-          if (selectedIndex < todos.length - 1) {
-            reorderTodos(selectedIndex, selectedIndex + 1);
-            setSelectedIndex(selectedIndex + 1);
-          }
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          setSelectedIndex(prev => Math.max(0, prev - 1));
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          setSelectedIndex(prev => Math.min(todos.length - 1, prev + 1));
-        } else if (e.key === ' ') {
-          e.preventDefault();
-          if (todos[selectedIndex]) {
-            toggleTodo(todos[selectedIndex].id);
-          }
-        } else if (e.key === 'Backspace' || e.key === 'Delete') {
-          e.preventDefault();
-          if (todos[selectedIndex]) {
-            deleteTodo(todos[selectedIndex].id);
-          }
-        } else if (e.key === 'e') {
-          e.preventDefault();
-          if (todos[selectedIndex] && editingIndex === null) {
-            setEditingIndex(selectedIndex);
-          }
-        }
+         // Check Shift+Arrow combinations first (more specific)
+         if (e.shiftKey && e.key === 'ArrowUp') {
+           e.preventDefault();
+           if (!selectedTag && selectedIndex > 0) {
+             reorderTodos(selectedIndex, selectedIndex - 1);
+             setSelectedIndex(selectedIndex - 1);
+           }
+         } else if (e.shiftKey && e.key === 'ArrowDown') {
+           e.preventDefault();
+           if (!selectedTag && selectedIndex < todos.length - 1) {
+             reorderTodos(selectedIndex, selectedIndex + 1);
+             setSelectedIndex(selectedIndex + 1);
+           }
+         } else if (e.key === 'ArrowUp') {
+           e.preventDefault();
+           setSelectedIndex(prev => Math.max(0, prev - 1));
+         } else if (e.key === 'ArrowDown') {
+           e.preventDefault();
+           setSelectedIndex(prev => Math.min(filteredTodos.length - 1, prev + 1));
+         } else if (e.key === ' ') {
+           e.preventDefault();
+           if (filteredTodos[selectedIndex]) {
+             toggleTodo(filteredTodos[selectedIndex].id);
+           }
+         } else if (e.key === 'Backspace' || e.key === 'Delete') {
+           e.preventDefault();
+           if (filteredTodos[selectedIndex]) {
+             deleteTodo(filteredTodos[selectedIndex].id);
+           }
+         } else if (e.key === 'e') {
+           e.preventDefault();
+           if (filteredTodos[selectedIndex] && editingIndex === null) {
+             setEditingIndex(selectedIndex);
+           }
+         }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIndex, todos, toggleTodo, deleteTodo, editingIndex, addTodo, reorderTodos, setShowShortcutsModal]);
+  }, [selectedIndex, todos, filteredTodos, toggleTodo, deleteTodo, editingIndex, addTodo, reorderTodos, setShowShortcutsModal]);
 
   const clearAll = () => {
     if (window.confirm('Are you sure you want to clear all todos?')) {
@@ -237,6 +268,43 @@ const App: React.FC = () => {
         </svg>
         Toodle
       </h1>
+      {allTags.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          top: '100px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          gap: '8px',
+          flexWrap: 'wrap',
+          maxWidth: '600px',
+          zIndex: 10
+        }}>
+          {allTags.map(tag => (
+            <span
+              key={tag}
+              onClick={() => {
+                const newTag = tag === selectedTag ? null : tag;
+                setSelectedTag(newTag);
+                setSelectedIndex(0);
+              }}
+              style={{
+                backgroundColor: colorForTag(tag),
+                color: '#333',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                opacity: selectedTag && selectedTag !== tag ? 0.5 : 1,
+                transition: 'opacity 0.2s'
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Fixed background that doesn't move */}
       <div style={{
@@ -250,17 +318,17 @@ const App: React.FC = () => {
       }}></div>
       <div style={{
         position: 'fixed',
-        top: '50%',
+        top: '60%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         zIndex: 1,
-        maxHeight: 'calc(100vh - 160px)',
+        maxHeight: 'calc(100vh - 200px)',
         overflowY: 'auto',
         overflowX: 'hidden',
         padding: '0 16px'
       }}>
         <TodoList
-          todos={todos}
+          todos={filteredTodos}
           toggleTodo={toggleTodo}
           selectedIndex={selectedIndex}
           setSelectedIndex={setSelectedIndex}
