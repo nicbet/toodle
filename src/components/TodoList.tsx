@@ -23,7 +23,9 @@ const TodoList: React.FC<{
   reorderTodos: (fromIndex: number, toIndex: number) => void;
   addTodo: (text: string) => void;
   saveCurrentAndAddNew: (currentId: number, currentText: string) => void;
-}> = ({ todos, toggleTodo, selectedIndex, setSelectedIndex, editingIndex, setEditingIndex, updateTodo, deleteTodo, reorderTodos, addTodo, saveCurrentAndAddNew }) => {
+  allTags: string[];
+  tagColorMap: Record<string, number>;
+}> = ({ todos, toggleTodo, selectedIndex, setSelectedIndex, editingIndex, setEditingIndex, updateTodo, deleteTodo, reorderTodos, addTodo, saveCurrentAndAddNew, allTags, tagColorMap }) => {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
@@ -64,6 +66,8 @@ const TodoList: React.FC<{
                 deleteTodo={deleteTodo}
                 addTodo={addTodo}
                 saveCurrentAndAddNew={saveCurrentAndAddNew}
+                allTags={allTags}
+                tagColorMap={tagColorMap}
               />
             ))}
           </ul>

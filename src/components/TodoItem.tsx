@@ -16,7 +16,9 @@ const TodoItem: React.FC<{
   deleteTodo: (id: number) => void;
   addTodo: (text: string) => void;
   saveCurrentAndAddNew: (currentId: number, currentText: string) => void;
-}> = ({ text, completed, toggleTodo, id, index, isSelected, setSelectedIndex, isEditing, setEditingIndex, updateTodo, deleteTodo, addTodo, saveCurrentAndAddNew }) => {
+  allTags: string[];
+  tagColorMap: Record<string, number>;
+}> = ({ text, completed, toggleTodo, id, index, isSelected, setSelectedIndex, isEditing, setEditingIndex, updateTodo, deleteTodo, addTodo, saveCurrentAndAddNew, allTags, tagColorMap }) => {
   const {
     attributes,
     listeners,
@@ -37,11 +39,33 @@ const TodoItem: React.FC<{
   const liRef = useRef<HTMLLIElement>(null);
 
   const tags = text.match(/#\w+/g) || [];
-  const colorForTag = (tag: string) => {
-    const hash = tag.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-    const hue = hash % 360;
-    return `hsl(${hue}, 40%, 70%)`;
+
+  // Catppuccin Mocha pastel palette for tags
+  const tagColorPalette = [
+    '#f5e0dc', '#f2cdcd', '#f5c2e7', '#cba6f7', '#f38ba8', '#eba0ac', '#fab387', '#f9e2af', '#a6e3a1', '#94e2d5',
+    '#89dceb', '#74c7ec', '#89b4fa', '#b4befe', '#cdd6f4', '#bac2de', '#a6adc8', '#9399b2', '#7f849c', '#6c7086',
+    '#f5c2e7', '#cba6f7', '#f38ba8', '#eba0ac', '#fab387', '#f9e2af', '#a6e3a1', '#94e2d5', '#89dceb', '#74c7ec'
+  ];
+
+  const getTagColors = (tag: string) => {
+    // Use the persistent tag color mapping
+    const paletteIndex = tagColorMap[tag] || 0;
+    const backgroundColor = tagColorPalette[paletteIndex % tagColorPalette.length]!;
+
+    // Calculate luminance to determine text color
+    const hex = backgroundColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    return {
+      backgroundColor,
+      color: luminance > 0.5 ? '#1e1e2e' : '#cdd6f4' // Dark text on light bg, light text on dark bg
+    };
   };
+
+  const colorForTag = (tag: string) => getTagColors(tag).backgroundColor;
 
   useEffect(() => {
     setEditText(text);
@@ -184,14 +208,13 @@ const TodoItem: React.FC<{
                {tags.map(tag => (
                  <span
                    key={tag}
-                   style={{
-                     backgroundColor: colorForTag(tag),
-                     color: '#333',
-                     padding: '2px 6px',
-                     borderRadius: '4px',
-                     fontSize: '12px',
-                     fontWeight: 'bold'
-                   }}
+                    style={{
+                      ...getTagColors(tag),
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
                  >
                    {tag}
                  </span>

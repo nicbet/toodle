@@ -21,12 +21,34 @@ const App: React.FC = () => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [tagColorMap, setTagColorMap] = useState<Record<string, number>>({});
 
-  const colorForTag = (tag: string) => {
-    const hash = tag.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-    const hue = hash % 360;
-    return `hsl(${hue}, 40%, 70%)`;
+  // Catppuccin Mocha pastel palette for tags
+  const tagColorPalette = [
+    '#f5e0dc', '#f2cdcd', '#f5c2e7', '#cba6f7', '#f38ba8', '#eba0ac', '#fab387', '#f9e2af', '#a6e3a1', '#94e2d5',
+    '#89dceb', '#74c7ec', '#89b4fa', '#b4befe', '#cdd6f4', '#bac2de', '#a6adc8', '#9399b2', '#7f849c', '#6c7086',
+    '#f5c2e7', '#cba6f7', '#f38ba8', '#eba0ac', '#fab387', '#f9e2af', '#a6e3a1', '#94e2d5', '#89dceb', '#74c7ec'
+  ];
+
+  const getTagColors = (tag: string) => {
+    // Use the persistent tag color mapping
+    const paletteIndex = tagColorMap[tag] || 0;
+    const backgroundColor = tagColorPalette[paletteIndex % tagColorPalette.length]!;
+
+    // Calculate luminance to determine text color
+    const hex = backgroundColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    return {
+      backgroundColor,
+      color: luminance > 0.5 ? '#1e1e2e' : '#cdd6f4' // Dark text on light bg, light text on dark bg
+    };
   };
+
+  const colorForTag = (tag: string) => getTagColors(tag).backgroundColor;
 
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
@@ -35,6 +57,48 @@ const App: React.FC = () => {
     });
     return Array.from(tagSet).sort();
   }, [todos]);
+
+  // Load tag color map from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('tagColorMap');
+    if (saved) {
+      setTagColorMap(JSON.parse(saved));
+    }
+  }, []);
+
+  // Save tag color map to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('tagColorMap', JSON.stringify(tagColorMap));
+  }, [tagColorMap]);
+
+  // Assign colors to new tags
+  useEffect(() => {
+    const newTagColorMap = { ...tagColorMap };
+    const usedColors = new Set(Object.values(tagColorMap));
+
+    allTags.forEach(tag => {
+      if (!(tag in newTagColorMap)) {
+        // Find an unused color index
+        let colorIndex = 0;
+        while (usedColors.has(colorIndex)) {
+          colorIndex = (colorIndex + 1) % tagColorPalette.length;
+        }
+        newTagColorMap[tag] = colorIndex;
+        usedColors.add(colorIndex);
+      }
+    });
+
+    // Clean up colors for tags that no longer exist
+    Object.keys(newTagColorMap).forEach(tag => {
+      if (!allTags.includes(tag)) {
+        delete newTagColorMap[tag];
+      }
+    });
+
+    if (JSON.stringify(newTagColorMap) !== JSON.stringify(tagColorMap)) {
+      setTagColorMap(newTagColorMap);
+    }
+  }, [allTags, tagColorMap]);
 
   const filteredTodos = useMemo(() => {
     if (!selectedTag) return todos;
@@ -289,8 +353,7 @@ const App: React.FC = () => {
                 setSelectedIndex(0);
               }}
               style={{
-                backgroundColor: colorForTag(tag),
-                color: '#333',
+                ...getTagColors(tag),
                 padding: '4px 8px',
                 borderRadius: '6px',
                 fontSize: '14px',
@@ -341,6 +404,8 @@ const App: React.FC = () => {
           reorderTodos={reorderTodos}
           addTodo={addTodo}
           saveCurrentAndAddNew={saveCurrentAndAddNew}
+          allTags={allTags}
+          tagColorMap={tagColorMap}
         />
       </div>
 
