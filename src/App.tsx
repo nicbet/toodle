@@ -119,7 +119,20 @@ const App: React.FC = () => {
         e.preventDefault();
         addTodo('');
       } else if (todos.length > 0) {
-        if (e.key === 'ArrowUp') {
+        // Check Shift+Arrow combinations first (more specific)
+        if (e.shiftKey && e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (selectedIndex > 0) {
+            reorderTodos(selectedIndex, selectedIndex - 1);
+            setSelectedIndex(selectedIndex - 1);
+          }
+        } else if (e.shiftKey && e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (selectedIndex < todos.length - 1) {
+            reorderTodos(selectedIndex, selectedIndex + 1);
+            setSelectedIndex(selectedIndex + 1);
+          }
+        } else if (e.key === 'ArrowUp') {
           e.preventDefault();
           setSelectedIndex(prev => Math.max(0, prev - 1));
         } else if (e.key === 'ArrowDown') {
@@ -145,7 +158,7 @@ const App: React.FC = () => {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIndex, todos, toggleTodo, deleteTodo, editingIndex, addTodo]);
+  }, [selectedIndex, todos, toggleTodo, deleteTodo, editingIndex, addTodo, reorderTodos]);
 
   const clearAll = () => {
     if (window.confirm('Are you sure you want to clear all todos?')) {
@@ -272,6 +285,7 @@ const App: React.FC = () => {
       }}>
         <div>Press "/" to add • Arrow keys to navigate • "E" to edit</div>
         <div>'Space' to toggle • 'Backspace' or 'Delete' to remove</div>
+        <div>Shift+↑/↓ to reorder • Drag to reorder</div>
       </div>
       {todos.length === 0 && (
         <div style={{
