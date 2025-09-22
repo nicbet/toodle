@@ -4,9 +4,11 @@ import { KeyboardShortcutsModal } from './components/Modal.js';
 import AppHeader from './components/AppHeader.js';
 import TagFilterBar from './components/TagFilterBar.js';
 import AppFooter from './components/AppFooter.js';
+import ThemeToggle from './components/ThemeToggle.js';
 import { tagColorPalette } from './utils/tagColors.js';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
 import { TodoProvider, useTodoContext } from './contexts/TodoContext.js';
+import { ThemeProvider } from './contexts/ThemeContext.js';
 
 declare global {
   interface Window {
@@ -130,6 +132,7 @@ const AppContent: React.FC = () => {
 
   return (
     <>
+      <ThemeToggle />
       <AppHeader onClearAll={clearAll} />
       <TagFilterBar
         allTags={allTags}
@@ -177,9 +180,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <TodoProvider>
-      <AppContent />
-    </TodoProvider>
+    <ThemeProvider>
+      <TodoProvider>
+        <AppContent />
+      </TodoProvider>
+    </ThemeProvider>
   );
 };
 

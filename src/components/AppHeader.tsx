@@ -12,11 +12,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onClearAll }) => {
         className="App__Clear-Button"
         title="Clear all todos"
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.3)';
           e.currentTarget.style.transform = 'scale(1.05)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)';
           e.currentTarget.style.transform = 'scale(1)';
         }}
       >
