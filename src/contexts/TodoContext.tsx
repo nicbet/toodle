@@ -25,6 +25,7 @@ interface TodoContextType {
   deleteTodo: (id: number) => void;
   updateTodo: (id: number, text: string) => void;
   reorderTodos: (fromIndex: number, toIndex: number) => void;
+  clearAllTodos: () => void;
 
   // From useTagFiltering
   selectedTag: string | null;

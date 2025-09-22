@@ -122,6 +122,15 @@ export const KeyboardShortcutsModal: React.FC<{
           </div>
 
           <div className="Keyboard-Shortcuts-Modal__Shortcut">
+            <span className="Keyboard-Shortcuts-Modal__Shortcut-Label">Clear all todos</span>
+            <div className="Keyboard-Shortcuts-Modal__Shortcut-Keys">
+              <kbd className="Keyboard-Shortcuts-Modal__Kbd">Shift</kbd>
+              <span style={{ color: '#6b7280' }}>+</span>
+              <kbd className="Keyboard-Shortcuts-Modal__Kbd">Del</kbd>
+            </div>
+          </div>
+
+          <div className="Keyboard-Shortcuts-Modal__Shortcut">
             <span className="Keyboard-Shortcuts-Modal__Shortcut-Label">Show shortcuts</span>
             <kbd className="Keyboard-Shortcuts-Modal__Kbd">?</kbd>
           </div>

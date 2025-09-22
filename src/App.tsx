@@ -37,6 +37,7 @@ const AppContent: React.FC = () => {
     filteredTodos,
     tagColorMap,
     setTagColorMap,
+    clearAllTodos,
   } = useTodoContext();
 
 
@@ -122,18 +123,15 @@ const AppContent: React.FC = () => {
     reorderTodos,
     setEditingIndex,
     setShowShortcutsModal,
+    clearAllTodos,
   });
 
-  const clearAll = () => {
-    if (window.confirm('Are you sure you want to clear all todos?')) {
-      setTodos([]);
-    }
-  };
+
 
   return (
     <>
       <ThemeToggle />
-      <AppHeader onClearAll={clearAll} />
+      <AppHeader />
       <TagFilterBar
         allTags={allTags}
         selectedTag={selectedTag}

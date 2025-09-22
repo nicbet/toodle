@@ -19,6 +19,7 @@ interface UseKeyboardShortcutsProps {
   reorderTodos: (fromIndex: number, toIndex: number) => void;
   setEditingIndex: (index: number | null) => void;
   setShowShortcutsModal: (show: boolean) => void;
+  clearAllTodos: () => void;
 }
 
 export const useKeyboardShortcuts = ({
@@ -33,6 +34,7 @@ export const useKeyboardShortcuts = ({
   reorderTodos,
   setEditingIndex,
   setShowShortcutsModal,
+  clearAllTodos,
 }: UseKeyboardShortcutsProps) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -71,6 +73,9 @@ export const useKeyboardShortcuts = ({
           if (filteredTodos[selectedIndex]) {
             toggleTodo(filteredTodos[selectedIndex].id);
           }
+        } else if (e.shiftKey && e.key === 'Delete') {
+          e.preventDefault();
+          clearAllTodos();
         } else if (e.key === 'Backspace' || e.key === 'Delete') {
           e.preventDefault();
           if (filteredTodos[selectedIndex]) {
@@ -86,5 +91,5 @@ export const useKeyboardShortcuts = ({
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIndex, todos, filteredTodos, selectedTag, toggleTodo, deleteTodo, addTodo, reorderTodos, setEditingIndex, setShowShortcutsModal]);
+  }, [selectedIndex, todos, filteredTodos, selectedTag, toggleTodo, deleteTodo, addTodo, reorderTodos, setEditingIndex, setShowShortcutsModal, clearAllTodos]);
 };

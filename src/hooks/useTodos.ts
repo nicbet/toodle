@@ -74,6 +74,14 @@ export const useTodos = () => {
     }
   };
 
+  const clearAllTodos = () => {
+    if (window.confirm('Are you sure you want to clear all todos?')) {
+      setTodos([]);
+      setSelectedIndex(0);
+      setEditingIndex(null);
+    }
+  };
+
   return {
     todos,
     setTodos,
@@ -87,5 +95,6 @@ export const useTodos = () => {
     deleteTodo,
     updateTodo,
     reorderTodos,
+    clearAllTodos,
   };
 };
