@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import TodoList from './components/TodoList.js';
 import { KeyboardShortcutsModal } from './components/Modal.js';
+import AppHeader from './components/AppHeader.js';
+import TagFilterBar from './components/TagFilterBar.js';
+import AppFooter from './components/AppFooter.js';
+import { tagColorPalette } from './utils/tagColors.js';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
+import { TodoProvider, useTodoContext } from './contexts/TodoContext.js';
 
 declare global {
   interface Window {
@@ -8,68 +14,30 @@ declare global {
   }
 }
 
-interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
-  order: number;
-}
-
-const App: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+const AppContent: React.FC = () => {
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [tagColorMap, setTagColorMap] = useState<Record<string, number>>({});
+  const {
+    todos,
+    setTodos,
+    selectedIndex,
+    setSelectedIndex,
+    editingIndex,
+    setEditingIndex,
+    addTodo,
+    saveCurrentAndAddNew,
+    toggleTodo,
+    deleteTodo,
+    updateTodo,
+    reorderTodos,
+    selectedTag,
+    setSelectedTag,
+    allTags,
+    filteredTodos,
+    tagColorMap,
+    setTagColorMap,
+  } = useTodoContext();
 
-  // Catppuccin Mocha pastel palette for tags
-  const tagColorPalette = [
-    '#f5e0dc', '#f2cdcd', '#f5c2e7', '#cba6f7', '#f38ba8', '#eba0ac', '#fab387', '#f9e2af', '#a6e3a1', '#94e2d5',
-    '#89dceb', '#74c7ec', '#89b4fa', '#b4befe', '#cdd6f4', '#bac2de', '#a6adc8', '#9399b2', '#7f849c', '#6c7086',
-    '#f5c2e7', '#cba6f7', '#f38ba8', '#eba0ac', '#fab387', '#f9e2af', '#a6e3a1', '#94e2d5', '#89dceb', '#74c7ec'
-  ];
 
-  const getTagColors = (tag: string) => {
-    // Use the persistent tag color mapping
-    const paletteIndex = tagColorMap[tag] || 0;
-    const backgroundColor = tagColorPalette[paletteIndex % tagColorPalette.length]!;
-
-    // Calculate luminance to determine text color
-    const hex = backgroundColor.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-    return {
-      backgroundColor,
-      color: luminance > 0.5 ? '#1e1e2e' : '#cdd6f4' // Dark text on light bg, light text on dark bg
-    };
-  };
-
-  const colorForTag = (tag: string) => getTagColors(tag).backgroundColor;
-
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    todos.forEach(todo => {
-      (todo.text.match(/#\w+/g) || []).forEach(tag => tagSet.add(tag));
-    });
-    return Array.from(tagSet).sort();
-  }, [todos]);
-
-  // Load tag color map from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('tagColorMap');
-    if (saved) {
-      setTagColorMap(JSON.parse(saved));
-    }
-  }, []);
-
-  // Save tag color map to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('tagColorMap', JSON.stringify(tagColorMap));
-  }, [tagColorMap]);
 
   // Assign colors to new tags
   useEffect(() => {
@@ -100,89 +68,9 @@ const App: React.FC = () => {
     }
   }, [allTags, tagColorMap]);
 
-  const filteredTodos = useMemo(() => {
-    if (!selectedTag) return todos;
-    return todos.filter(todo => (todo.text.match(/#\w+/g) || []).some(tag => tag === selectedTag));
-  }, [todos, selectedTag]);
-
-  const addTodo = (text: string) => {
-    const newTodos = [...todos, { id: Date.now(), text, completed: false, order: todos.length }];
-    setTodos(newTodos);
-    setSelectedIndex(newTodos.length - 1);
-    setEditingIndex(newTodos.length - 1);
-  };
-
-  const saveCurrentAndAddNew = (currentId: number, currentText: string) => {
-    setTodos(prevTodos => {
-      const updated = prevTodos.map(todo => todo.id === currentId ? { ...todo, text: currentText } : todo);
-      const newTodo = { id: Date.now(), text: '', completed: false, order: updated.length };
-      const newTodos = [...updated, newTodo];
-      setSelectedIndex(newTodos.length - 1);
-      setEditingIndex(newTodos.length - 1);
-      return newTodos;
-    });
-  };
-
-  const toggleTodo = (id: number) => {
-    setTodos(todos.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
-  };
-
-  const deleteTodo = (id: number) => {
-    const newTodos = todos.filter(todo => todo.id !== id);
-    setTodos(newTodos);
-    if (selectedTag) {
-      const newFiltered = newTodos.filter(todo => (todo.text.match(/#\w+/g) || []).some(tag => tag === selectedTag));
-      setSelectedIndex(prev => Math.min(prev, newFiltered.length - 1));
-    } else {
-      setSelectedIndex(prev => Math.min(prev, newTodos.length - 1));
-    }
-    setEditingIndex(null);
-  };
-
-  const updateTodo = (id: number, text: string) => {
-    setTodos(todos.map(todo => todo.id === id ? { ...todo, text } : todo));
-  };
-
-  const reorderTodos = (fromIndex: number, toIndex: number) => {
-    if (fromIndex < 0 || fromIndex >= todos.length || toIndex < 0 || toIndex >= todos.length) {
-      return;
-    }
-
-    const newTodos = [...todos];
-    const movedTodo = newTodos[fromIndex]!;
-    newTodos.splice(fromIndex, 1);
-    newTodos.splice(toIndex, 0, movedTodo);
-
-    // Update order values to maintain consistency
-    const reorderedTodos = newTodos.map((todo, index) => ({
-      ...todo,
-      order: index
-    }));
-
-    setTodos(reorderedTodos);
-
-    // Update selectedIndex if it was affected by the move
-    if (selectedIndex === fromIndex) {
-      setSelectedIndex(toIndex);
-    } else if (selectedIndex > fromIndex && selectedIndex <= toIndex) {
-      setSelectedIndex(selectedIndex - 1);
-    } else if (selectedIndex < fromIndex && selectedIndex >= toIndex) {
-      setSelectedIndex(selectedIndex + 1);
-    }
-  };
-
   const openCount = todos.filter(t => !t.completed).length;
 
-  useEffect(() => {
-    const saved = localStorage.getItem('todos');
-    if (saved) {
-      setTodos(JSON.parse(saved));
-    }
-  }, []);
 
-  useEffect(() => {
-    localStorage.setItem('todos', JSON.stringify(todos));
-  }, [todos]);
 
   useEffect(() => {
     if (selectedTag) {
@@ -220,59 +108,19 @@ const App: React.FC = () => {
     }
   }, [todos]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger shortcuts if the event target is an input field
-      const target = e.target as HTMLElement;
-      const isInputField = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
-
-      if (e.key === '/' && !isInputField) {
-        e.preventDefault();
-        addTodo('');
-      } else if (e.key === '?' && !isInputField) {
-        e.preventDefault();
-        setShowShortcutsModal(true);
-      } else if (todos.length > 0) {
-        // Check Shift+Arrow combinations first (more specific)
-        if (e.shiftKey && e.key === 'ArrowUp') {
-          e.preventDefault();
-          if (!selectedTag && selectedIndex > 0) {
-            reorderTodos(selectedIndex, selectedIndex - 1);
-            setSelectedIndex(selectedIndex - 1);
-          }
-        } else if (e.shiftKey && e.key === 'ArrowDown') {
-          e.preventDefault();
-          if (!selectedTag && selectedIndex < todos.length - 1) {
-            reorderTodos(selectedIndex, selectedIndex + 1);
-            setSelectedIndex(selectedIndex + 1);
-          }
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          setSelectedIndex(prev => Math.max(0, prev - 1));
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          setSelectedIndex(prev => Math.min(filteredTodos.length - 1, prev + 1));
-        } else if (e.key === ' ') {
-          e.preventDefault();
-          if (filteredTodos[selectedIndex]) {
-            toggleTodo(filteredTodos[selectedIndex].id);
-          }
-        } else if (e.key === 'Backspace' || e.key === 'Delete') {
-          e.preventDefault();
-          if (filteredTodos[selectedIndex]) {
-            deleteTodo(filteredTodos[selectedIndex].id);
-          }
-        } else if (e.key === 'e') {
-          e.preventDefault();
-          if (filteredTodos[selectedIndex] && editingIndex === null) {
-            setEditingIndex(selectedIndex);
-          }
-        }
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIndex, todos, filteredTodos, toggleTodo, deleteTodo, editingIndex, addTodo, reorderTodos, setShowShortcutsModal]);
+  useKeyboardShortcuts({
+    selectedIndex,
+    setSelectedIndex,
+    todos,
+    filteredTodos,
+    selectedTag,
+    toggleTodo,
+    deleteTodo,
+    addTodo,
+    reorderTodos,
+    setEditingIndex,
+    setShowShortcutsModal,
+  });
 
   const clearAll = () => {
     if (window.confirm('Are you sure you want to clear all todos?')) {
@@ -282,116 +130,18 @@ const App: React.FC = () => {
 
   return (
     <>
-      <button
-        onClick={clearAll}
-        style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          backgroundColor: 'rgba(255,255,255,0.2)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255,255,255,0.3)',
-          borderRadius: '8px',
-          padding: '10px',
-          cursor: 'pointer',
-          zIndex: 10,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.2s ease'
-        }}
-        title="Clear all todos"
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.3)';
-          e.currentTarget.style.transform = 'scale(1.05)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)';
-          e.currentTarget.style.transform = 'scale(1)';
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M14.4 3.419a.639.639 0 0 1 1.2 0l.61 1.668a9.587 9.587 0 0 0 5.703 5.703l1.668.61a.639.639 0 0 1 0 1.2l-1.668.61a9.587 9.587 0 0 0-5.703 5.703l-.61 1.668a.639.639 0 0 1-1.2 0l-.61-1.668a9.587 9.587 0 0 0-5.703-5.703l-1.668-.61a.639.639 0 0 1 0-1.2l1.668-.61a9.587 9.587 0 0 0 5.703-5.703l.61-1.668ZM8 16.675a.266.266 0 0 1 .5 0l.254.694a3.992 3.992 0 0 0 2.376 2.377l.695.254a.266.266 0 0 1 0 .5l-.695.254a3.992 3.992 0 0 0-2.376 2.377l-.254.694a.266.266 0 0 1-.5 0l-.254-.694a3.992 3.992 0 0 0-2.376-2.377l-.695-.254a.266.266 0 0 1 0-.5l.695-.254a3.992 3.992 0 0 0 2.376-2.377L8 16.675ZM4.2.21a.32.32 0 0 1 .6 0l.305.833a4.793 4.793 0 0 0 2.852 2.852l.833.305a.32.32 0 0 1 0 .6l-.833.305a4.793 4.793 0 0 0-2.852 2.852L4.8 8.79a.32.32 0 0 1-.6 0l-.305-.833a4.793 4.793 0 0 0-2.852-2.852L.21 4.8a.32.32 0 0 1 0-.6l.833-.305a4.793 4.793 0 0 0 2.852-2.852L4.2.21Z"></path></svg>
-      </button>
-      <h1 style={{
-        position: 'fixed',
-        top: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        fontSize: '2rem',
-        fontWeight: 'bold',
-        color: 'rgba(255,255,255,0.9)',
-        zIndex: 10,
-        margin: 0,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px'
-      }}>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <polyline points="9,12 12,15 15,9"></polyline>
-        </svg>
-        Toodle
-      </h1>
-      {allTags.length > 0 && (
-        <div style={{
-          position: 'fixed',
-          top: '80px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          gap: '8px',
-          flexWrap: 'wrap',
-          maxWidth: '600px',
-          zIndex: 10
-        }}>
-          {allTags.map(tag => (
-            <span
-              key={tag}
-              onClick={() => {
-                const newTag = tag === selectedTag ? null : tag;
-                setSelectedTag(newTag);
-                setSelectedIndex(0);
-              }}
-              style={{
-                ...getTagColors(tag),
-                padding: '4px 8px',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                opacity: selectedTag && selectedTag !== tag ? 0.5 : 1,
-                transition: 'opacity 0.2s'
-              }}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
+      <AppHeader onClearAll={clearAll} />
+      <TagFilterBar
+        allTags={allTags}
+        selectedTag={selectedTag}
+        setSelectedTag={setSelectedTag}
+        setSelectedIndex={setSelectedIndex}
+        tagColorMap={tagColorMap}
+      />
 
       {/* Fixed background that doesn't move */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        background: 'radial-gradient(circle at 20% 50%, #1e3a8a 0%, transparent 50%), radial-gradient(circle at 80% 20%, #0ea5e9 0%, transparent 50%), radial-gradient(circle at 40% 80%, #14b8a6 0%, transparent 50%), radial-gradient(circle at 60% 10%, #ea580c 0%, transparent 50%), radial-gradient(circle at 90% 90%, #ec4899 0%, transparent 50%), #0f172a',
-        zIndex: -1
-      }}></div>
-      <div style={{
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 1,
-        maxHeight: 'calc(100vh - 160px)',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        padding: '0 16px',
-        marginTop: '20px'
-      }}
-      >
+      <div className="App__Background"></div>
+      <div className="App__Container">
         <TodoList
           todos={filteredTodos}
           toggleTodo={toggleTodo}
@@ -409,56 +159,10 @@ const App: React.FC = () => {
         />
       </div>
 
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: '0.75rem',
-        zIndex: 10,
-        textAlign: 'center',
-        lineHeight: '1.4'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <kbd style={{
-            backgroundColor: 'rgba(255,255,255,0.1)',
-            backdropFilter: 'blur(4px)',
-            padding: '2px 6px',
-            borderRadius: '4px',
-            fontSize: '0.625rem',
-            fontFamily: 'monospace',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'rgba(255,255,255,0.8)',
-            fontWeight: '500'
-          }}>?</kbd>
-          <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '400' }}>Keyboard shortcuts</span>
-        </div>
-      </div>
+      <AppFooter />
       {todos.length === 0 && (
-        <div style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          textAlign: 'center',
-          color: 'rgba(255,255,255,0.9)',
-          fontSize: '1.5rem',
-          fontWeight: '500',
-          zIndex: 5
-        }}>
-          Press <kbd style={{
-            backgroundColor: 'rgba(255,255,255,0.15)',
-            backdropFilter: 'blur(6px)',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            fontSize: '1rem',
-            fontFamily: 'monospace',
-            border: '1px solid rgba(255,255,255,0.3)',
-            color: 'rgba(255,255,255,0.9)',
-            fontWeight: '600',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>/</kbd> to add your first todo
+        <div className="App__Empty-State">
+          Press <kbd className="App__Empty-State-Kbd">/</kbd> to add your first todo
         </div>
       )}
 
@@ -468,6 +172,14 @@ const App: React.FC = () => {
       />
 
     </>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <TodoProvider>
+      <AppContent />
+    </TodoProvider>
   );
 };
 

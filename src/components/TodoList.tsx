@@ -38,20 +38,8 @@ const TodoList: React.FC<{
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={todos.map(todo => todo.id)} strategy={verticalListSortingStrategy}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}>
-          <ul style={{
-            listStyle: 'none',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            maxHeight: 'calc(100vh - 260px)',
-            overflowY: 'auto'
-          }}>
+        <div className="Todo-List__Container">
+          <ul className="Todo-List__List">
             {todos.map((todo, index) => (
               <TodoItem
                 key={todo.id}
