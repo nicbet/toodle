@@ -25,6 +25,8 @@ const AppContent: React.FC = () => {
     setSelectedIndex,
     editingIndex,
     setEditingIndex,
+    hideCompleted,
+    setHideCompleted,
     addTodo,
     saveCurrentAndAddNew,
     toggleTodo,
@@ -124,6 +126,7 @@ const AppContent: React.FC = () => {
     setEditingIndex,
     setShowShortcutsModal,
     clearAllTodos,
+    setHideCompleted,
   });
 
 
@@ -160,7 +163,12 @@ const AppContent: React.FC = () => {
         />
       </div>
 
-      <AppFooter />
+      <AppFooter
+        todos={todos}
+        filteredTodos={filteredTodos}
+        selectedTag={selectedTag}
+        hideCompleted={hideCompleted}
+      />
       {todos.length === 0 && (
         <div className="App__Empty-State">
           Press <kbd className="App__Empty-State-Kbd">/</kbd> to add your first todo

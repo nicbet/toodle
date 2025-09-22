@@ -295,8 +295,7 @@
 }
 
 .Todo-Item--completed {
-  color: var(--text-completed);
-  opacity: 0.7;
+  /* opacity handled by inline style */
 }
 
 .Todo-Item--dragging {
@@ -331,6 +330,7 @@
 
 .Todo-Item__Text--completed {
   text-decoration: line-through;
+  color: var(--text-completed);
 }
 
 .Todo-Item__Input {

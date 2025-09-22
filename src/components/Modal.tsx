@@ -131,6 +131,11 @@ export const KeyboardShortcutsModal: React.FC<{
           </div>
 
           <div className="Keyboard-Shortcuts-Modal__Shortcut">
+            <span className="Keyboard-Shortcuts-Modal__Shortcut-Label">Toggle hide completed</span>
+            <kbd className="Keyboard-Shortcuts-Modal__Kbd">F</kbd>
+          </div>
+
+          <div className="Keyboard-Shortcuts-Modal__Shortcut">
             <span className="Keyboard-Shortcuts-Modal__Shortcut-Label">Show shortcuts</span>
             <kbd className="Keyboard-Shortcuts-Modal__Kbd">?</kbd>
           </div>

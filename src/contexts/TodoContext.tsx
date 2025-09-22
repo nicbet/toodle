@@ -19,6 +19,8 @@ interface TodoContextType {
   setSelectedIndex: (index: number | ((prev: number) => number)) => void;
   editingIndex: number | null;
   setEditingIndex: (index: number | null) => void;
+  hideCompleted: boolean;
+  setHideCompleted: (hide: boolean | ((prev: boolean) => boolean)) => void;
   addTodo: (text: string) => void;
   saveCurrentAndAddNew: (currentId: number, currentText: string) => void;
   toggleTodo: (id: number) => void;
@@ -42,7 +44,7 @@ const TodoContext = createContext<TodoContextType | undefined>(undefined);
 
 export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const todosData = useTodos();
-  const tagFilteringData = useTagFiltering(todosData.todos);
+  const tagFilteringData = useTagFiltering(todosData.todos, todosData.hideCompleted);
   const [tagColorMap, setTagColorMap] = useLocalStorage<Record<string, number>>('tagColorMap', {});
 
   const value: TodoContextType = {

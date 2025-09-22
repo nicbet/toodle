@@ -12,6 +12,7 @@ export const useTodos = () => {
   const [todos, setTodos] = useLocalStorage<Todo[]>('todos', []);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [hideCompleted, setHideCompleted] = useLocalStorage<boolean>('hideCompleted', false);
 
   const addTodo = (text: string) => {
     const newTodos = [...todos, { id: Date.now(), text, completed: false, order: todos.length }];
@@ -89,6 +90,8 @@ export const useTodos = () => {
     setSelectedIndex,
     editingIndex,
     setEditingIndex,
+    hideCompleted,
+    setHideCompleted,
     addTodo,
     saveCurrentAndAddNew,
     toggleTodo,

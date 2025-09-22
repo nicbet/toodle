@@ -32,7 +32,7 @@ const TodoItem: React.FC<{
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : (isEditing ? 1 : (completed ? 0.7 : 1)),
   };
   const [editText, setEditText] = useState(text);
   const [isHovered, setIsHovered] = useState(false);
@@ -140,22 +140,22 @@ const TodoItem: React.FC<{
           className="Todo-Item__Input"
           autoFocus
         />
-       ) : (
-         <>
-            <span className={`Todo-Item__Text ${completed ? 'Todo-Item__Text--completed' : ''}`}>{text}</span>
-            {tags.length > 0 && (
-              <div className="Todo-Item__Tag-Container">
-                {tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="Todo-Item__Tag"
-                     style={getTagColors(tag, tagColorMap)}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
+      ) : (
+        <>
+          <span className={`Todo-Item__Text ${completed ? 'Todo-Item__Text--completed' : ''}`}>{text}</span>
+          {tags.length > 0 && (
+            <div className="Todo-Item__Tag-Container">
+              {tags.map(tag => (
+                <span
+                  key={tag}
+                  className="Todo-Item__Tag"
+                  style={getTagColors(tag, tagColorMap)}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </>
       )}
     </li>

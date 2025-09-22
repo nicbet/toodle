@@ -7,7 +7,7 @@ interface Todo {
   order: number;
 }
 
-export const useTagFiltering = (todos: Todo[]) => {
+export const useTagFiltering = (todos: Todo[], hideCompleted: boolean) => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const allTags = useMemo(() => {
@@ -19,9 +19,20 @@ export const useTagFiltering = (todos: Todo[]) => {
   }, [todos]);
 
   const filteredTodos = useMemo(() => {
-    if (!selectedTag) return todos;
-    return todos.filter(todo => (todo.text.match(/#\w+/g) || []).some(tag => tag === selectedTag));
-  }, [todos, selectedTag]);
+    let filtered = todos;
+
+    // First filter by tag if selected
+    if (selectedTag) {
+      filtered = filtered.filter(todo => (todo.text.match(/#\w+/g) || []).some(tag => tag === selectedTag));
+    }
+
+    // Then filter out completed todos if hideCompleted is true
+    if (hideCompleted) {
+      filtered = filtered.filter(todo => !todo.completed);
+    }
+
+    return filtered;
+  }, [todos, selectedTag, hideCompleted]);
 
   return {
     selectedTag,
