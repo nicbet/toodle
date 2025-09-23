@@ -21,6 +21,7 @@ interface UseKeyboardShortcutsProps {
   setShowShortcutsModal: (show: boolean) => void;
   clearAllTodos: () => void;
   setHideCompleted: (hide: boolean | ((prev: boolean) => boolean)) => void;
+  setSelectedTag: (tag: string | null) => void;
 }
 
 export const useKeyboardShortcuts = ({
@@ -37,6 +38,7 @@ export const useKeyboardShortcuts = ({
   setShowShortcutsModal,
   clearAllTodos,
   setHideCompleted,
+  setSelectedTag,
 }: UseKeyboardShortcutsProps) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,10 +93,16 @@ export const useKeyboardShortcuts = ({
         } else if (e.key === 'f') {
           e.preventDefault();
           setHideCompleted(prev => !prev);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          if (selectedTag) {
+            setSelectedTag(null);
+            setSelectedIndex(0);
+          }
         }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIndex, todos, filteredTodos, selectedTag, toggleTodo, deleteTodo, addTodo, reorderTodos, setEditingIndex, setShowShortcutsModal, clearAllTodos, setHideCompleted]);
+  }, [selectedIndex, todos, filteredTodos, selectedTag, toggleTodo, deleteTodo, addTodo, reorderTodos, setEditingIndex, setShowShortcutsModal, clearAllTodos, setHideCompleted, setSelectedTag]);
 };

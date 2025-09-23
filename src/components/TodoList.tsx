@@ -25,7 +25,52 @@ const TodoList: React.FC<{
   saveCurrentAndAddNew: (currentId: number, currentText: string) => void;
   allTags: string[];
   tagColorMap: Record<string, number>;
-}> = ({ todos, toggleTodo, selectedIndex, setSelectedIndex, editingIndex, setEditingIndex, updateTodo, deleteTodo, reorderTodos, addTodo, saveCurrentAndAddNew, allTags, tagColorMap }) => {
+  totalTodosCount: number;
+  selectedTag: string | null;
+  hideCompleted: boolean;
+}> = ({ todos, toggleTodo, selectedIndex, setSelectedIndex, editingIndex, setEditingIndex, updateTodo, deleteTodo, reorderTodos, addTodo, saveCurrentAndAddNew, allTags, tagColorMap, totalTodosCount, selectedTag, hideCompleted }) => {
+  const getEmptyStateMessage = () => {
+    if (selectedTag && hideCompleted) {
+      return (
+        <>
+          No todos match the current filters.
+          <br />
+          Try <kbd className="Todo-List__Empty-State-Kbd">esc</kbd> to clear tag filter or <kbd className="Todo-List__Empty-State-Kbd">f</kbd> to show completed todos.
+        </>
+      );
+    } else if (selectedTag) {
+      return (
+        <>
+          No todos with tag "{selectedTag}".
+          <br />
+          Press <kbd className="Todo-List__Empty-State-Kbd">esc</kbd> to clear the filter.
+        </>
+      );
+    } else if (hideCompleted) {
+      return (
+        <>
+          All {totalTodosCount} todos are completed!
+          <br />
+          Press <kbd className="Todo-List__Empty-State-Kbd">f</kbd> to show them.
+        </>
+      );
+    }
+    return null;
+  };
+
+  if (todos.length === 0 && totalTodosCount > 0) {
+    const message = getEmptyStateMessage();
+    if (message) {
+      return (
+        <div className="Todo-List__Container">
+          <div className="Todo-List__Empty-State">
+            {message}
+          </div>
+        </div>
+      );
+    }
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {

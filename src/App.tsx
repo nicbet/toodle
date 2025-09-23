@@ -127,6 +127,7 @@ const AppContent: React.FC = () => {
     setShowShortcutsModal,
     clearAllTodos,
     setHideCompleted,
+    setSelectedTag,
   });
 
 
@@ -160,6 +161,9 @@ const AppContent: React.FC = () => {
           saveCurrentAndAddNew={saveCurrentAndAddNew}
           allTags={allTags}
           tagColorMap={tagColorMap}
+          totalTodosCount={todos.length}
+          selectedTag={selectedTag}
+          hideCompleted={hideCompleted}
         />
       </div>
 

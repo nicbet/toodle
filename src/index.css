@@ -202,6 +202,37 @@
   line-height: 1.4;
 }
 
+.App__Footer-Content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.App__Footer-Mode {
+  font-weight: 500;
+  color: var(--text-white);
+}
+
+.App__Footer-Count {
+  color: var(--text-white-secondary);
+}
+
+.App__Footer-Hint {
+  color: var(--text-white-muted);
+}
+
+.App__Footer-Version {
+  color: var(--text-white-muted);
+  font-family: monospace;
+}
+
+.App__Footer-Separator {
+  color: var(--text-white-muted);
+  font-weight: bold;
+}
+
 .App__Footer-Shortcut {
   display: flex;
   align-items: center;
@@ -233,17 +264,26 @@
   z-index: 5;
 }
 
-.App__Empty-State-Kbd {
+.Todo-List__Empty-State {
+  text-align: center;
+  color: var(--text-white-secondary);
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 40px 20px;
+  line-height: 1.6;
+}
+
+.Todo-List__Empty-State-Kbd {
   background-color: var(--bg-kbd-secondary);
   backdrop-filter: blur(6px);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
   font-family: monospace;
   border: 1px solid var(--border-secondary);
   color: var(--text-white-secondary);
   font-weight: 600;
-  box-shadow: 0 2px 8px var(--shadow-primary);
+  margin: 0 2px;
 }
 
 /* Todo List */
