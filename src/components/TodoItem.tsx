@@ -31,7 +31,7 @@ const TodoItem: React.FC<{
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isDragging ? 'none' : transition,
     opacity: isDragging ? 0.5 : (isEditing ? 1 : (completed ? 0.7 : 1)),
   };
   const [editText, setEditText] = useState(text);
