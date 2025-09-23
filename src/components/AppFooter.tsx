@@ -33,9 +33,9 @@ const AppFooter: React.FC<AppFooterProps> = ({ todos, filteredTodos, selectedTag
 
   const getHelpHints = () => {
     const hints = [];
-    if (selectedTag) hints.push("esc: clear filter");
-    if (hideCompleted) hints.push("f: show completed");
-    if (hints.length === 0) hints.push("?: shortcuts");
+    if (selectedTag) hints.push("Press 'Esc' to clear filters");
+    if (hideCompleted) hints.push("Press 'F' to show completed");
+    if (hints.length === 0) hints.push("Press '?' to show shortcuts");
     return hints;
   };
 
