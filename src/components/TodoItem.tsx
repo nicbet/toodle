@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { getTagColors, tagColorPalette } from '../utils/tagColors.js';
@@ -38,6 +38,11 @@ const TodoItem: React.FC<{
   const [isHovered, setIsHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const liRef = useRef<HTMLLIElement>(null);
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+  const setRefs = useCallback((node: HTMLLIElement | null) => {
+    setNodeRef(node);
+    liRef.current = node;
+  }, [setNodeRef]);
 
   const tags = text.match(/#\w+/g) || [];
 
@@ -50,6 +55,67 @@ const TodoItem: React.FC<{
       liRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [text, isEditing]);
+
+  useEffect(() => {
+    if (isSelected && !isEditing && liRef.current) {
+      if (!scrollContainerRef.current) {
+        let parent: HTMLElement | null = liRef.current.parentElement;
+        while (parent) {
+          const { overflowY } = window.getComputedStyle(parent);
+          if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') {
+            scrollContainerRef.current = parent;
+            break;
+          }
+          parent = parent.parentElement;
+        }
+        if (!scrollContainerRef.current && document.scrollingElement instanceof HTMLElement) {
+          scrollContainerRef.current = document.scrollingElement;
+        }
+      }
+
+      const item = liRef.current;
+      const container = scrollContainerRef.current;
+
+      if (!container) {
+        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      const getVerticalGap = (element: HTMLElement) => {
+        const styles = window.getComputedStyle(element);
+        const rowGap = parseFloat(styles.rowGap);
+        if (!Number.isNaN(rowGap)) {
+          return rowGap;
+        }
+        const gap = parseFloat(styles.gap);
+        return Number.isNaN(gap) ? 0 : gap;
+      };
+
+      const itemRect = item.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const containerScrollTop = container.scrollTop;
+      const margin = getVerticalGap(container);
+
+      if (itemRect.top < containerRect.top + margin) {
+        const deltaTop = itemRect.top - containerRect.top;
+        const targetTop = Math.max(0, containerScrollTop + deltaTop - margin);
+        if (typeof container.scrollTo === 'function') {
+          container.scrollTo({ top: targetTop, behavior: 'smooth' });
+        } else {
+          container.scrollTop = targetTop;
+        }
+      } else if (itemRect.bottom > containerRect.bottom - margin) {
+        const deltaBottom = itemRect.bottom - containerRect.bottom;
+        const maxScroll = container.scrollHeight - container.clientHeight;
+        const targetTop = Math.min(maxScroll, containerScrollTop + deltaBottom + margin);
+        if (typeof container.scrollTo === 'function') {
+          container.scrollTo({ top: targetTop, behavior: 'smooth' });
+        } else {
+          container.scrollTop = targetTop;
+        }
+      }
+    }
+  }, [isSelected, isEditing]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -93,7 +159,7 @@ const TodoItem: React.FC<{
 
   return (
     <li
-      ref={setNodeRef}
+      ref={setRefs}
       onClick={() => {
         if (!isEditing) {
           setSelectedIndex(index);
