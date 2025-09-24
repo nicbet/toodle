@@ -25,8 +25,8 @@ const AppContent: React.FC = () => {
     setSelectedIndex,
     editingIndex,
     setEditingIndex,
-    hideCompleted,
-    setHideCompleted,
+    completionFilter,
+    setCompletionFilter,
     addTodo,
     saveCurrentAndAddNew,
     toggleTodo,
@@ -126,7 +126,7 @@ const AppContent: React.FC = () => {
     setEditingIndex,
     setShowShortcutsModal,
     clearAllTodos,
-    setHideCompleted,
+    setCompletionFilter,
     setSelectedTag,
   });
 
@@ -163,7 +163,7 @@ const AppContent: React.FC = () => {
           tagColorMap={tagColorMap}
           totalTodosCount={todos.length}
           selectedTag={selectedTag}
-          hideCompleted={hideCompleted}
+          completionFilter={completionFilter}
         />
       </div>
 
@@ -171,7 +171,7 @@ const AppContent: React.FC = () => {
         todos={todos}
         filteredTodos={filteredTodos}
         selectedTag={selectedTag}
-        hideCompleted={hideCompleted}
+        completionFilter={completionFilter}
       />
       {todos.length === 0 && (
         <div className="App__Empty-State">

@@ -7,7 +7,9 @@ interface Todo {
   order: number;
 }
 
-export const useTagFiltering = (todos: Todo[], hideCompleted: boolean) => {
+type CompletionFilter = 'all' | 'hideCompleted' | 'showCompletedOnly';
+
+export const useTagFiltering = (todos: Todo[], completionFilter: CompletionFilter) => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const allTags = useMemo(() => {
@@ -26,13 +28,15 @@ export const useTagFiltering = (todos: Todo[], hideCompleted: boolean) => {
       filtered = filtered.filter(todo => (todo.text.match(/#\w+/g) || []).some(tag => tag === selectedTag));
     }
 
-    // Then filter out completed todos if hideCompleted is true
-    if (hideCompleted) {
+    // Then apply completion filter as needed
+    if (completionFilter === 'hideCompleted') {
       filtered = filtered.filter(todo => !todo.completed);
+    } else if (completionFilter === 'showCompletedOnly') {
+      filtered = filtered.filter(todo => todo.completed);
     }
 
     return filtered;
-  }, [todos, selectedTag, hideCompleted]);
+  }, [todos, selectedTag, completionFilter]);
 
   return {
     selectedTag,

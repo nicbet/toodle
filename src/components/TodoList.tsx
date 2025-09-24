@@ -27,15 +27,26 @@ const TodoList: React.FC<{
   tagColorMap: Record<string, number>;
   totalTodosCount: number;
   selectedTag: string | null;
-  hideCompleted: boolean;
-}> = ({ todos, toggleTodo, selectedIndex, setSelectedIndex, editingIndex, setEditingIndex, updateTodo, deleteTodo, reorderTodos, addTodo, saveCurrentAndAddNew, allTags, tagColorMap, totalTodosCount, selectedTag, hideCompleted }) => {
+  completionFilter: 'all' | 'hideCompleted' | 'showCompletedOnly';
+}> = ({ todos, toggleTodo, selectedIndex, setSelectedIndex, editingIndex, setEditingIndex, updateTodo, deleteTodo, reorderTodos, addTodo, saveCurrentAndAddNew, allTags, tagColorMap, totalTodosCount, selectedTag, completionFilter }) => {
+  const isHidingCompleted = completionFilter === 'hideCompleted';
+  const isShowingCompletedOnly = completionFilter === 'showCompletedOnly';
+
   const getEmptyStateMessage = () => {
-    if (selectedTag && hideCompleted) {
+    if (selectedTag && isHidingCompleted) {
       return (
         <>
           No todos match the current filters.
           <br />
           Try <kbd className="Todo-List__Empty-State-Kbd">esc</kbd> to clear tag filter or <kbd className="Todo-List__Empty-State-Kbd">f</kbd> to show completed todos.
+        </>
+      );
+    } else if (selectedTag && isShowingCompletedOnly) {
+      return (
+        <>
+          No completed todos with "{selectedTag}".
+          <br />
+          Press <kbd className="Todo-List__Empty-State-Kbd">esc</kbd> to clear the filter or <kbd className="Todo-List__Empty-State-Kbd">c</kbd> to show all todos.
         </>
       );
     } else if (selectedTag) {
@@ -46,12 +57,20 @@ const TodoList: React.FC<{
           Press <kbd className="Todo-List__Empty-State-Kbd">esc</kbd> to clear the filter.
         </>
       );
-    } else if (hideCompleted) {
+    } else if (isHidingCompleted) {
       return (
         <>
           All {totalTodosCount} todos are completed!
           <br />
           Press <kbd className="Todo-List__Empty-State-Kbd">f</kbd> to show them.
+        </>
+      );
+    } else if (isShowingCompletedOnly) {
+      return (
+        <>
+          No completed todos yet.
+          <br />
+          Press <kbd className="Todo-List__Empty-State-Kbd">c</kbd> to show all todos.
         </>
       );
     }

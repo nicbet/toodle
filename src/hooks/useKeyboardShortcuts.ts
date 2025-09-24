@@ -7,6 +7,8 @@ interface Todo {
   order: number;
 }
 
+type CompletionFilter = 'all' | 'hideCompleted' | 'showCompletedOnly';
+
 interface UseKeyboardShortcutsProps {
   selectedIndex: number;
   setSelectedIndex: (index: number | ((prev: number) => number)) => void;
@@ -20,7 +22,7 @@ interface UseKeyboardShortcutsProps {
   setEditingIndex: (index: number | null) => void;
   setShowShortcutsModal: (show: boolean) => void;
   clearAllTodos: () => void;
-  setHideCompleted: (hide: boolean | ((prev: boolean) => boolean)) => void;
+  setCompletionFilter: (filter: CompletionFilter | ((prev: CompletionFilter) => CompletionFilter)) => void;
   setSelectedTag: (tag: string | null) => void;
 }
 
@@ -37,7 +39,7 @@ export const useKeyboardShortcuts = ({
   setEditingIndex,
   setShowShortcutsModal,
   clearAllTodos,
-  setHideCompleted,
+  setCompletionFilter,
   setSelectedTag,
 }: UseKeyboardShortcutsProps) => {
   useEffect(() => {
@@ -92,7 +94,10 @@ export const useKeyboardShortcuts = ({
           }
         } else if (e.key === 'f') {
           e.preventDefault();
-          setHideCompleted(prev => !prev);
+          setCompletionFilter(prev => prev === 'hideCompleted' ? 'all' : 'hideCompleted');
+        } else if (e.key === 'c') {
+          e.preventDefault();
+          setCompletionFilter(prev => prev === 'showCompletedOnly' ? 'all' : 'showCompletedOnly');
         } else if (e.key === 'Escape') {
           e.preventDefault();
           if (selectedTag) {
@@ -104,5 +109,5 @@ export const useKeyboardShortcuts = ({
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIndex, todos, filteredTodos, selectedTag, toggleTodo, deleteTodo, addTodo, reorderTodos, setEditingIndex, setShowShortcutsModal, clearAllTodos, setHideCompleted, setSelectedTag]);
+  }, [selectedIndex, todos, filteredTodos, selectedTag, toggleTodo, deleteTodo, addTodo, reorderTodos, setEditingIndex, setShowShortcutsModal, clearAllTodos, setCompletionFilter, setSelectedTag]);
 };

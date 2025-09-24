@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocalStorage } from './useLocalStorage.js';
 
 interface Todo {
@@ -8,11 +8,45 @@ interface Todo {
   order: number;
 }
 
+export type CompletionFilter = 'all' | 'hideCompleted' | 'showCompletedOnly';
+
+const determineInitialCompletionFilter = (): CompletionFilter => {
+  try {
+    const storedFilter = window.localStorage.getItem('completionFilter');
+    if (storedFilter) {
+      const parsed = JSON.parse(storedFilter);
+      if (parsed === 'all' || parsed === 'hideCompleted' || parsed === 'showCompletedOnly') {
+        return parsed;
+      }
+    }
+
+    const legacyHideCompleted = window.localStorage.getItem('hideCompleted');
+    if (legacyHideCompleted) {
+      const legacyParsed = JSON.parse(legacyHideCompleted);
+      if (legacyParsed === true) {
+        return 'hideCompleted';
+      }
+    }
+  } catch (error) {
+    console.error('Error determining initial completion filter:', error);
+  }
+
+  return 'all';
+};
+
 export const useTodos = () => {
   const [todos, setTodos] = useLocalStorage<Todo[]>('todos', []);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [hideCompleted, setHideCompleted] = useLocalStorage<boolean>('hideCompleted', false);
+  const [completionFilter, setCompletionFilter] = useLocalStorage<CompletionFilter>('completionFilter', determineInitialCompletionFilter());
+
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem('hideCompleted');
+    } catch (error) {
+      console.error('Error cleaning up legacy hideCompleted flag:', error);
+    }
+  }, []);
 
   const addTodo = (text: string) => {
     const newTodos = [...todos, { id: Date.now(), text, completed: false, order: todos.length }];
@@ -90,8 +124,8 @@ export const useTodos = () => {
     setSelectedIndex,
     editingIndex,
     setEditingIndex,
-    hideCompleted,
-    setHideCompleted,
+    completionFilter,
+    setCompletionFilter,
     addTodo,
     saveCurrentAndAddNew,
     toggleTodo,

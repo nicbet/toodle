@@ -4,14 +4,15 @@ interface AppFooterProps {
   todos: Array<{ id: number; text: string; completed: boolean; order: number }>;
   filteredTodos: Array<{ id: number; text: string; completed: boolean; order: number }>;
   selectedTag: string | null;
-  hideCompleted: boolean;
+  completionFilter: 'all' | 'hideCompleted' | 'showCompletedOnly';
 }
 
-const AppFooter: React.FC<AppFooterProps> = ({ todos, filteredTodos, selectedTag, hideCompleted }) => {
+const AppFooter: React.FC<AppFooterProps> = ({ todos, filteredTodos, selectedTag, completionFilter }) => {
   const getModes = () => {
     const modes = [];
     if (selectedTag) modes.push('Filter by tag');
-    if (hideCompleted) modes.push('Filter completed');
+    if (completionFilter === 'hideCompleted') modes.push('Filter completed');
+    if (completionFilter === 'showCompletedOnly') modes.push('Completed only');
     return modes;
   };
 
@@ -19,13 +20,18 @@ const AppFooter: React.FC<AppFooterProps> = ({ todos, filteredTodos, selectedTag
     const visibleCount = filteredTodos.length;
     const totalCount = todos.length;
     const completedCount = todos.filter(todo => todo.completed).length;
-    
-    if (selectedTag && hideCompleted) {
+    const remainingCount = totalCount - completedCount;
+
+    if (selectedTag && completionFilter === 'hideCompleted') {
       return `${visibleCount} visible (${totalCount} total, ${completedCount} completed)`;
+    } else if (selectedTag && completionFilter === 'showCompletedOnly') {
+      return `${visibleCount} completed (${totalCount} total)`;
     } else if (selectedTag) {
       return `${visibleCount} visible (${totalCount} total)`;
-    } else if (hideCompleted) {
+    } else if (completionFilter === 'hideCompleted') {
       return `${visibleCount} visible (${completedCount} hidden)`;
+    } else if (completionFilter === 'showCompletedOnly') {
+      return `${visibleCount} completed (${remainingCount} hidden)`;
     } else {
       return `${totalCount} todos`;
     }
@@ -34,7 +40,8 @@ const AppFooter: React.FC<AppFooterProps> = ({ todos, filteredTodos, selectedTag
   const getHelpHints = () => {
     const hints = [];
     if (selectedTag) hints.push("Press 'Esc' to clear filters");
-    if (hideCompleted) hints.push("Press 'F' to show completed");
+    if (completionFilter === 'hideCompleted') hints.push("Press 'F' to show completed");
+    if (completionFilter === 'showCompletedOnly') hints.push("Press 'C' to show all todos");
     if (hints.length === 0) hints.push("Press '?' to show shortcuts");
     return hints;
   };

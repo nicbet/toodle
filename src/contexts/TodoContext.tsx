@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useTodos } from '../hooks/useTodos.js';
 import { useTagFiltering } from '../hooks/useTagFiltering.js';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
+import type { CompletionFilter } from '../hooks/useTodos.js';
 
 interface Todo {
   id: number;
@@ -19,8 +20,8 @@ interface TodoContextType {
   setSelectedIndex: (index: number | ((prev: number) => number)) => void;
   editingIndex: number | null;
   setEditingIndex: (index: number | null) => void;
-  hideCompleted: boolean;
-  setHideCompleted: (hide: boolean | ((prev: boolean) => boolean)) => void;
+  completionFilter: CompletionFilter;
+  setCompletionFilter: (filter: CompletionFilter | ((prev: CompletionFilter) => CompletionFilter)) => void;
   addTodo: (text: string) => void;
   saveCurrentAndAddNew: (currentId: number, currentText: string) => void;
   toggleTodo: (id: number) => void;
@@ -44,7 +45,7 @@ const TodoContext = createContext<TodoContextType | undefined>(undefined);
 
 export const TodoProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const todosData = useTodos();
-  const tagFilteringData = useTagFiltering(todosData.todos, todosData.hideCompleted);
+  const tagFilteringData = useTagFiltering(todosData.todos, todosData.completionFilter);
   const [tagColorMap, setTagColorMap] = useLocalStorage<Record<string, number>>('tagColorMap', {});
 
   const value: TodoContextType = {
