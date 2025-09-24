@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocalStorage } from './useLocalStorage.js';
+import { parseSchedule } from '../utils/schedule.js';
 
 interface Todo {
   id: number;
   text: string;
   completed: boolean;
   order: number;
+  scheduledAt: string | null;
+  scheduleText: string | null;
 }
 
 export type CompletionFilter = 'all' | 'hideCompleted' | 'showCompletedOnly';
@@ -48,8 +51,30 @@ export const useTodos = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (todos.some(todo => (todo as { scheduledAt?: string | null }).scheduledAt === undefined || (todo as { scheduleText?: string | null }).scheduleText === undefined)) {
+      setTodos(prevTodos => prevTodos.map(todo => ({
+        ...todo,
+        scheduledAt: (todo as { scheduledAt?: string | null }).scheduledAt ?? null,
+        scheduleText: (todo as { scheduleText?: string | null }).scheduleText ?? null,
+      })));
+    }
+  }, [todos, setTodos]);
+
   const addTodo = (text: string) => {
-    const newTodos = [...todos, { id: Date.now(), text, completed: false, order: todos.length }];
+    const { cleanedText, scheduledAt, scheduleText } = parseSchedule(text);
+    const baseText = cleanedText;
+    const newTodos = [
+      ...todos,
+      {
+        id: Date.now(),
+        text: baseText,
+        completed: false,
+        order: todos.length,
+        scheduledAt,
+        scheduleText: scheduleText ?? null,
+      }
+    ];
     setTodos(newTodos);
     setSelectedIndex(newTodos.length - 1);
     setEditingIndex(newTodos.length - 1);
@@ -57,8 +82,20 @@ export const useTodos = () => {
 
   const saveCurrentAndAddNew = (currentId: number, currentText: string) => {
     setTodos(prevTodos => {
-      const updated = prevTodos.map(todo => todo.id === currentId ? { ...todo, text: currentText } : todo);
-      const newTodo = { id: Date.now(), text: '', completed: false, order: updated.length };
+      const updated = prevTodos.map(todo => {
+        if (todo.id !== currentId) return todo;
+        const { cleanedText, scheduledAt, scheduleText } = parseSchedule(currentText);
+        const baseText = cleanedText;
+        return { ...todo, text: baseText, scheduledAt, scheduleText: scheduleText ?? null };
+      });
+      const newTodo = {
+        id: Date.now(),
+        text: '',
+        completed: false,
+        order: updated.length,
+        scheduledAt: null,
+        scheduleText: null,
+      };
       const newTodos = [...updated, newTodo];
       setSelectedIndex(newTodos.length - 1);
       setEditingIndex(newTodos.length - 1);
@@ -78,7 +115,9 @@ export const useTodos = () => {
   };
 
   const updateTodo = (id: number, text: string) => {
-    setTodos(todos.map(todo => todo.id === id ? { ...todo, text } : todo));
+    const { cleanedText, scheduledAt, scheduleText } = parseSchedule(text);
+    const baseText = cleanedText;
+    setTodos(todos.map(todo => todo.id === id ? { ...todo, text: baseText, scheduledAt, scheduleText: scheduleText ?? null } : todo));
   };
 
   const reorderTodos = (fromIndex: number, toIndex: number) => {

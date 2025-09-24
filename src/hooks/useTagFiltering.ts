@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react';
+import { TODAY_FILTER, PAST_DUE_FILTER, isDueToday, isPastDue } from '../utils/schedule.js';
 
 interface Todo {
   id: number;
   text: string;
   completed: boolean;
   order: number;
+  scheduledAt: string | null;
+  scheduleText: string | null;
 }
 
 type CompletionFilter = 'all' | 'hideCompleted' | 'showCompletedOnly';
@@ -24,7 +27,11 @@ export const useTagFiltering = (todos: Todo[], completionFilter: CompletionFilte
     let filtered = todos;
 
     // First filter by tag if selected
-    if (selectedTag) {
+    if (selectedTag === TODAY_FILTER) {
+      filtered = filtered.filter(todo => !isPastDue(todo.scheduledAt) && isDueToday(todo.scheduledAt));
+    } else if (selectedTag === PAST_DUE_FILTER) {
+      filtered = filtered.filter(todo => isPastDue(todo.scheduledAt));
+    } else if (selectedTag) {
       filtered = filtered.filter(todo => (todo.text.match(/#\w+/g) || []).some(tag => tag === selectedTag));
     }
 

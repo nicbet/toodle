@@ -5,6 +5,8 @@ interface Todo {
   text: string;
   completed: boolean;
   order: number;
+  scheduledAt: string | null;
+  scheduleText: string | null;
 }
 
 type CompletionFilter = 'all' | 'hideCompleted' | 'showCompletedOnly';

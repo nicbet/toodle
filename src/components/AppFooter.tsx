@@ -1,8 +1,9 @@
 import React from 'react';
+import { TODAY_FILTER, PAST_DUE_FILTER } from '../utils/schedule.js';
 
 interface AppFooterProps {
-  todos: Array<{ id: number; text: string; completed: boolean; order: number }>;
-  filteredTodos: Array<{ id: number; text: string; completed: boolean; order: number }>;
+  todos: Array<{ id: number; text: string; completed: boolean; order: number; scheduledAt: string | null; scheduleText: string | null }>;
+  filteredTodos: Array<{ id: number; text: string; completed: boolean; order: number; scheduledAt: string | null; scheduleText: string | null }>;
   selectedTag: string | null;
   completionFilter: 'all' | 'hideCompleted' | 'showCompletedOnly';
 }
@@ -10,7 +11,13 @@ interface AppFooterProps {
 const AppFooter: React.FC<AppFooterProps> = ({ todos, filteredTodos, selectedTag, completionFilter }) => {
   const getModes = () => {
     const modes = [];
-    if (selectedTag) modes.push('Filter by tag');
+    if (selectedTag === TODAY_FILTER) {
+      modes.push('Today');
+    } else if (selectedTag === PAST_DUE_FILTER) {
+      modes.push('Past due');
+    } else if (selectedTag) {
+      modes.push('Filter by tag');
+    }
     if (completionFilter === 'hideCompleted') modes.push('Filter completed');
     if (completionFilter === 'showCompletedOnly') modes.push('Completed only');
     return modes;

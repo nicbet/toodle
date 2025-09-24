@@ -1,5 +1,6 @@
 import React from 'react';
 import { getTagColors } from '../utils/tagColors.js';
+import { TODAY_FILTER, PAST_DUE_FILTER } from '../utils/schedule.js';
 
 interface TagFilterBarProps {
   allTags: string[];
@@ -16,10 +17,24 @@ const TagFilterBar: React.FC<TagFilterBarProps> = ({
   setSelectedIndex,
   tagColorMap,
 }) => {
-  if (allTags.length === 0) return null;
-
   return (
     <div className="App__Tag-Filter-Container">
+      {[{ label: 'Today', value: TODAY_FILTER }, { label: 'Past due', value: PAST_DUE_FILTER }].map(filter => {
+        const isActive = selectedTag === filter.value;
+        return (
+          <span
+            key={filter.value}
+            onClick={() => {
+              const newTag = isActive ? null : filter.value;
+              setSelectedTag(newTag);
+              setSelectedIndex(0);
+            }}
+            className={`App__Tag-Filter App__Tag-Filter--builtin ${isActive ? 'App__Tag-Filter--active' : ''}`}
+          >
+            {filter.label}
+          </span>
+        );
+      })}
       {allTags.map(tag => (
         <span
           key={tag}
@@ -28,7 +43,7 @@ const TagFilterBar: React.FC<TagFilterBarProps> = ({
             setSelectedTag(newTag);
             setSelectedIndex(0);
           }}
-          className="App__Tag-Filter"
+          className={`App__Tag-Filter ${selectedTag === tag ? 'App__Tag-Filter--active' : ''}`}
           style={{
             ...getTagColors(tag, tagColorMap),
             opacity: selectedTag && selectedTag !== tag ? 0.5 : 1

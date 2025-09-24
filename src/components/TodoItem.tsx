@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { getTagColors, tagColorPalette } from '../utils/tagColors.js';
+import { getTagColors } from '../utils/tagColors.js';
+import { Clock } from 'lucide-react';
+import { formatScheduledAt, isDueToday, isDueTomorrow, isPastDue } from '../utils/schedule.js';
 
 const TodoItem: React.FC<{
   id: number;
   text: string;
   completed: boolean;
+  scheduledAt: string | null;
+  scheduleText: string | null;
   index: number;
   toggleTodo: (id: number) => void;
   isSelected: boolean;
@@ -19,7 +23,7 @@ const TodoItem: React.FC<{
   saveCurrentAndAddNew: (currentId: number, currentText: string) => void;
   allTags: string[];
   tagColorMap: Record<string, number>;
-}> = ({ text, completed, toggleTodo, id, index, isSelected, setSelectedIndex, isEditing, setEditingIndex, updateTodo, deleteTodo, addTodo, saveCurrentAndAddNew, allTags, tagColorMap }) => {
+}> = ({ text, completed, scheduledAt, scheduleText, toggleTodo, id, index, isSelected, setSelectedIndex, isEditing, setEditingIndex, updateTodo, deleteTodo, addTodo, saveCurrentAndAddNew, allTags, tagColorMap }) => {
   const {
     attributes,
     listeners,
@@ -34,10 +38,21 @@ const TodoItem: React.FC<{
     transition: isDragging ? 'none' : transition,
     opacity: isDragging ? 0.5 : (isEditing ? 1 : (completed ? 0.7 : 1)),
   };
-  const [editText, setEditText] = useState(text);
+  const composeEditableValue = () => {
+    const base = text.trim();
+    if (scheduleText) {
+      if (!base) {
+        return scheduleText.trim();
+      }
+      return `${base} ${scheduleText}`.trim();
+    }
+    return base;
+  };
+
+  const [editText, setEditText] = useState(composeEditableValue);
   const [isHovered, setIsHovered] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const liRef = useRef<HTMLLIElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const liRef = useRef<HTMLLIElement | null>(null);
   const scrollContainerRef = useRef<HTMLElement | null>(null);
   const setRefs = useCallback((node: HTMLLIElement | null) => {
     setNodeRef(node);
@@ -45,16 +60,21 @@ const TodoItem: React.FC<{
   }, [setNodeRef]);
 
   const tags = text.match(/#\w+/g) || [];
+  const isOverdue = isPastDue(scheduledAt);
+  const isDueSameDay = !isOverdue && isDueToday(scheduledAt);
+  const isDueNextDay = !isOverdue && !isDueSameDay && isDueTomorrow(scheduledAt);
+  const scheduledDisplay = formatScheduledAt(scheduledAt);
+  const displayText = text || scheduleText || '';
 
 
 
   useEffect(() => {
-    setEditText(text);
+    setEditText(composeEditableValue());
     if (isEditing) {
       inputRef.current?.select();
       liRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  }, [text, isEditing]);
+  }, [text, scheduleText, isEditing]);
 
   useEffect(() => {
     if (isSelected && !isEditing && liRef.current) {
@@ -154,7 +174,14 @@ const TodoItem: React.FC<{
     isEditing && 'Todo-Item--editing',
     isSelected && 'Todo-Item--selected',
     completed && 'Todo-Item--completed',
-    isDragging && 'Todo-Item--dragging'
+    isDragging && 'Todo-Item--dragging',
+  ].filter(Boolean).join(' ');
+
+  const scheduleClassName = [
+    'Todo-Item__Schedule',
+    isOverdue && 'Todo-Item__Schedule--overdue',
+    isDueSameDay && 'Todo-Item__Schedule--today',
+    isDueNextDay && 'Todo-Item__Schedule--tomorrow',
   ].filter(Boolean).join(' ');
 
   return (
@@ -208,7 +235,18 @@ const TodoItem: React.FC<{
         />
       ) : (
         <>
-          <span className={`Todo-Item__Text ${completed ? 'Todo-Item__Text--completed' : ''}`}>{text}</span>
+          <span className={`Todo-Item__Text ${completed ? 'Todo-Item__Text--completed' : ''}`}>
+            {displayText}
+            {scheduledAt && (
+              <span
+                className={scheduleClassName}
+                title={scheduledDisplay ?? undefined}
+                aria-label={scheduledDisplay ? `Scheduled for ${scheduledDisplay}` : 'Scheduled task'}
+              >
+                <Clock size={18} strokeWidth={2.4} aria-hidden="true" />
+              </span>
+            )}
+          </span>
           {tags.length > 0 && (
             <div className="Todo-Item__Tag-Container">
               {tags.map(tag => (
