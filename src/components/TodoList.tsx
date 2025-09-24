@@ -3,6 +3,7 @@ import { DndContext, closestCenter } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import TodoItem from './TodoItem.js';
+import { TODAY_FILTER, TOMORROW_FILTER, PAST_DUE_FILTER } from '../utils/schedule.js';
 
 interface Todo {
   id: number;
@@ -34,7 +35,25 @@ const TodoList: React.FC<{
   const isHidingCompleted = completionFilter === 'hideCompleted';
   const isShowingCompletedOnly = completionFilter === 'showCompletedOnly';
 
+  const scheduleFilterMessages: Record<string, { empty: string }> = {
+    [PAST_DUE_FILTER]: { empty: 'No past due todos.' },
+    [TODAY_FILTER]: { empty: 'No todos scheduled for today.' },
+    [TOMORROW_FILTER]: { empty: 'No todos scheduled for tomorrow.' },
+  };
+
   const getEmptyStateMessage = () => {
+    const scheduleFilter = selectedTag ? scheduleFilterMessages[selectedTag] : undefined;
+
+    if (scheduleFilter) {
+      return (
+        <>
+          {scheduleFilter.empty}
+          <br />
+          Press <kbd className="Todo-List__Empty-State-Kbd">esc</kbd> to clear the filter.
+        </>
+      );
+    }
+
     if (selectedTag && isHidingCompleted) {
       return (
         <>
