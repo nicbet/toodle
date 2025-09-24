@@ -1,6 +1,6 @@
 import React from 'react';
 import { getTagColors } from '../utils/tagColors.js';
-import { TODAY_FILTER, PAST_DUE_FILTER } from '../utils/schedule.js';
+import { TODAY_FILTER, TOMORROW_FILTER, PAST_DUE_FILTER } from '../utils/schedule.js';
 
 interface TagFilterBarProps {
   allTags: string[];
@@ -19,7 +19,11 @@ const TagFilterBar: React.FC<TagFilterBarProps> = ({
 }) => {
   return (
     <div className="App__Tag-Filter-Container">
-      {[{ label: 'Today', value: TODAY_FILTER }, { label: 'Past due', value: PAST_DUE_FILTER }].map(filter => {
+      {[
+        { label: 'Past due', value: PAST_DUE_FILTER },
+        { label: 'Today', value: TODAY_FILTER },
+        { label: 'Tomorrow', value: TOMORROW_FILTER },
+      ].map(filter => {
         const isActive = selectedTag === filter.value;
         return (
           <span

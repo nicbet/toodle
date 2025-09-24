@@ -11,6 +11,7 @@ export interface ParsedScheduleResult {
 }
 
 export const TODAY_FILTER = '__TODAY__';
+export const TOMORROW_FILTER = '__TOMORROW__';
 export const PAST_DUE_FILTER = '__PAST_DUE__';
 
 export const parseSchedule = (input: string, referenceDate: Date = new Date()): ParsedScheduleResult => {

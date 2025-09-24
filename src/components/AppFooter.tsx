@@ -1,5 +1,5 @@
 import React from 'react';
-import { TODAY_FILTER, PAST_DUE_FILTER } from '../utils/schedule.js';
+import { TODAY_FILTER, TOMORROW_FILTER, PAST_DUE_FILTER } from '../utils/schedule.js';
 
 interface AppFooterProps {
   todos: Array<{ id: number; text: string; completed: boolean; order: number; scheduledAt: string | null; scheduleText: string | null }>;
@@ -13,6 +13,8 @@ const AppFooter: React.FC<AppFooterProps> = ({ todos, filteredTodos, selectedTag
     const modes = [];
     if (selectedTag === TODAY_FILTER) {
       modes.push('Today');
+    } else if (selectedTag === TOMORROW_FILTER) {
+      modes.push('Tomorrow');
     } else if (selectedTag === PAST_DUE_FILTER) {
       modes.push('Past due');
     } else if (selectedTag) {

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { TODAY_FILTER, PAST_DUE_FILTER, isDueToday, isPastDue } from '../utils/schedule.js';
+import { TODAY_FILTER, TOMORROW_FILTER, PAST_DUE_FILTER, isDueToday, isDueTomorrow, isPastDue } from '../utils/schedule.js';
 
 interface Todo {
   id: number;
@@ -29,6 +29,8 @@ export const useTagFiltering = (todos: Todo[], completionFilter: CompletionFilte
     // First filter by tag if selected
     if (selectedTag === TODAY_FILTER) {
       filtered = filtered.filter(todo => !isPastDue(todo.scheduledAt) && isDueToday(todo.scheduledAt));
+    } else if (selectedTag === TOMORROW_FILTER) {
+      filtered = filtered.filter(todo => !isPastDue(todo.scheduledAt) && isDueTomorrow(todo.scheduledAt));
     } else if (selectedTag === PAST_DUE_FILTER) {
       filtered = filtered.filter(todo => isPastDue(todo.scheduledAt));
     } else if (selectedTag) {
