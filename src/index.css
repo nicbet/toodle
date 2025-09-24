@@ -19,6 +19,12 @@
   --bg-kbd-secondary: rgba(255,255,255,0.15);
   --bg-kbd-modal: #f3f4f6;
 
+  --selected-border: rgba(37,99,235,0.9);
+  --selected-glow: rgba(59,130,246,0.6);
+
+  --editing-border: rgba(245,158,11,0.65);
+  --editing-glow: rgba(251,191,36,0.45);
+
   --text-primary: #1f2937;
   --text-secondary: #374151;
   --text-tertiary: #6b7280;
@@ -57,6 +63,12 @@
   --bg-kbd: rgba(255,255,255,0.08);
   --bg-kbd-secondary: rgba(255,255,255,0.12);
   --bg-kbd-modal: #1e293b;
+
+  --selected-border: rgba(96,165,250,0.65);
+  --selected-glow: rgba(37,99,235,0.45);
+
+  --editing-border: rgba(251,191,36,0.55);
+  --editing-glow: rgba(253,224,71,0.35);
 
   --text-primary: #f8fafc;
   --text-secondary: #e2e8f0;
@@ -321,14 +333,20 @@
 }
 
 .Todo-Item--editing {
-  background-color: rgba(245,158,11,0.15);
+  background-color: rgba(245, 159, 11, 0.499);
   box-shadow: 0 4px 12px rgba(255,107,53,0.3);
-  border-color: rgba(245,158,11,0.5);
+  border-color: var(--editing-border);
   cursor: default;
 }
 
 .Todo-Item--selected {
-  box-shadow: 0 0 15px rgba(0,102,255,0.6), 0 4px 12px var(--shadow-secondary);
+  border-color: var(--selected-border);
+  box-shadow: 0 0 0 3px var(--selected-glow), 0 8px 18px var(--shadow-secondary);
+}
+
+.Todo-Item--editing.Todo-Item--selected {
+  border-color: var(--editing-border);
+  box-shadow: 0 0 0 3px var(--editing-glow), 0 4px 12px rgba(255,107,53,0.3);
 }
 
 .Todo-Item--completed {
