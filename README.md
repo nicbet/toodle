@@ -5,8 +5,11 @@ A modern, responsive todo list application built with React, TypeScript, Vite, a
 ![Toodle Demo](./assets/demo.png)
 
 ## Features
-
-- ✅ Add, edit, and delete todos
+- ✅ Add, edit, complete and delete todos
+- ⏰ Scheduling with natural language
+- 🚩 Tagging and filtering with #hashtags
+- 💾 Local storage in browser, no DB
+- ⌨️ Keyboard controls and shortcuts
 - 🎨 Modern UI with Tailwind CSS
 - 📱 Responsive design
 - 🚀 Fast development with Vite
